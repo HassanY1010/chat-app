@@ -1,7 +1,7 @@
 {
   "name": "three-user-chat",
   "version": "1.0.0",
-  "description": "Real-time chat application for three users",
+  "description": "Real-time chat application with voice messages",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
@@ -11,6 +11,9 @@
     "express": "^4.18.2",
     "socket.io": "^4.7.2",
     "sqlite3": "^5.1.6",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.0",
+    "fs-extra": "^11.1.1",
     "emoji-mart": "^3.0.1"
   },
   "devDependencies": {

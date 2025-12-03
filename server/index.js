@@ -3,6 +3,9 @@ const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 const db = require('./db');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
+const fs = require('fs-extra');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,13 +16,85 @@ const io = socketIo(server, {
     }
 });
 
-// منفذ السيرفر
 const PORT = process.env.PORT || 3000;
 
-// خدمة الملفات الثابتة
+// ===============================
+//  🔥 Render: مكان ثابت للملفات
+// ===============================
+const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
+fs.ensureDirSync(uploadsDir);
+
+// ===============================
+//  🔥 Multer لرفع الصوتيات
+// ===============================
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueName = `${uuidv4()}_${Date.now()}${path.extname(file.originalname)}`;
+        cb(null, uniqueName);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024,
+    },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = [
+            'audio/mpeg', 'audio/wav', 'audio/ogg',
+            'audio/webm', 'audio/x-m4a'
+        ];
+        if (allowedTypes.includes(file.mimetype)) cb(null, true);
+        else cb(new Error('نوع الملف غير مسموح'));
+    }
+});
+
+// ===============================
+//  🔥 ملفات الواجهة
+// ===============================
 app.use(express.static(path.join(__dirname, '../public')));
 
-// API لجلب الرسائل السابقة
+// رفع وتشغيل الصوتيات
+app.use('/uploads', express.static(uploadsDir));
+
+
+// ===============================
+//  🔥 API رفع الصوتيات
+// ===============================
+app.post('/api/upload-voice', upload.single('voice'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'لم يتم رفع أي ملف' });
+        }
+
+        const fileInfo = {
+            filename: req.file.filename,
+            originalname: req.file.originalname,
+            mimetype: req.file.mimetype,
+            size: req.file.size,
+            path: `/uploads/${req.file.filename}`,
+            url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+        };
+
+        res.json({
+            success: true,
+            message: 'تم رفع الملف الصوتي بنجاح',
+            file: fileInfo
+        });
+
+    } catch (err) {
+        console.error('Error uploading file:', err);
+        res.status(500).json({ error: 'فشل في رفع الملف' });
+    }
+});
+
+
+// ===============================
+//  🔥 API الرسائل والمستخدمين
+// ===============================
 app.get('/api/messages', async (req, res) => {
     try {
         const messages = await db.getAllMessages();
@@ -29,7 +104,6 @@ app.get('/api/messages', async (req, res) => {
     }
 });
 
-// API لجلب المستخدمين
 app.get('/api/users', async (req, res) => {
     try {
         const users = await db.getAllUsers();
@@ -39,78 +113,90 @@ app.get('/api/users', async (req, res) => {
     }
 });
 
-// إدارة اتصالات Socket.IO
+
+// ===============================
+//  🔥 Socket.IO Chat
+// ===============================
 io.on('connection', async (socket) => {
     console.log('New user connected:', socket.id);
 
-    // إرسال البيانات الأولية عند الاتصال
+    // إرسال بيانات أولية
     try {
         const [messages, users] = await Promise.all([
             db.getRecentMessages(),
             db.getAllUsers()
         ]);
-        
+
         socket.emit('initial_data', { messages, users });
+
     } catch (err) {
         console.error('Error sending initial data:', err);
     }
 
-    // معالجة تسجيل دخول المستخدم
+    // تسجيل دخول المستخدم
     socket.on('user_login', async (username) => {
         try {
             await db.updateUserStatus(username, 'online');
             socket.username = username;
-            
-            // إرسال تحديث حالة المستخدم للجميع
-            const users = await db.getAllUsers();
-            io.emit('users_update', users);
-            
-            console.log(`${username} logged in`);
+            io.emit('users_update', await db.getAllUsers());
         } catch (err) {
             console.error('Error updating user status:', err);
         }
     });
 
-    // معالجة إرسال الرسائل
+    // رسالة نصية
     socket.on('send_message', async (data) => {
         try {
-            // حفظ الرسالة في قاعدة البيانات
-            await db.saveMessage(data.sender, data.message);
-            
-            // جلب الرسالة المحفوظة مع الوقت
+            await db.saveMessage(data.sender, data.message, data.isVoiceMessage || false);
+
             const messages = await db.getRecentMessages();
-            const newMessage = messages[messages.length - 1];
-            
-            // إرسال الرسالة للجميع
-            io.emit('new_message', newMessage);
+            io.emit('new_message', messages[messages.length - 1]);
+
         } catch (err) {
             console.error('Error saving message:', err);
-            socket.emit('error', 'Failed to send message');
         }
     });
 
-    // عند انقطاع الاتصال
+    // رسالة صوتية
+    socket.on('send_voice_message', async (data) => {
+        try {
+            const { sender, voiceFile, duration } = data;
+
+            await db.saveVoiceMessage(sender, voiceFile, duration);
+
+            const messages = await db.getRecentMessages();
+            io.emit('new_message', messages[messages.length - 1]);
+
+        } catch (err) {
+            console.error('Error saving voice message:', err);
+        }
+    });
+
+    // عند الخروج
     socket.on('disconnect', async () => {
         if (socket.username) {
             try {
                 await db.updateUserStatus(socket.username, 'offline');
-                const users = await db.getAllUsers();
-                io.emit('users_update', users);
-                console.log(`${socket.username} disconnected`);
+                io.emit('users_update', await db.getAllUsers());
             } catch (err) {
-                console.error('Error updating user status on disconnect:', err);
+                console.error('Error on disconnect:', err);
             }
         }
     });
 });
 
-// تشغيل السيرفر
+
+// ===============================
+//  🔥 تشغيل السيرفر
+// ===============================
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
 
 
-// معالجة إغلاق التطبيق بشكل صحيح
+// ===============================
+//  🔥 إغلاق النظام بدون مشاكل
+// ===============================
 process.on('SIGINT', () => {
     db.close();
     process.exit(0);

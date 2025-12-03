@@ -175,6 +175,15 @@ body {
         height: 70vh !important;
         bottom: 70px !important;
     }
+    
+    .voice-player {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .voice-player .flex-grow {
+        width: 100%;
+    }
 }
 
 /* تخصيصات للأجهزة الدارك مود */
@@ -271,4 +280,71 @@ body {
 /* تأثيرات الخلفيات */
 .bg-noise {
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* تأثيرات خاصة للرسائل الصوتية */
+@keyframes voicePlaying {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.voice-playing {
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background-size: 400% 400%;
+    animation: voicePlaying 2s ease infinite;
+}
+
+/* تخصيصات مشغل الصوت */
+audio::-webkit-media-controls-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+audio::-webkit-media-controls-play-button {
+    background-color: white;
+    border-radius: 50%;
+}
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+    color: white;
+    font-weight: bold;
+}
+
+/* تأثيرات لمس للجوال */
+@media (hover: none) and (pointer: coarse) {
+    .emoji-btn:active {
+        transform: scale(1.1);
+        background: #f3f4f6;
+    }
+    
+    button:active {
+        transform: scale(0.98);
+    }
+    
+    #voice-record-btn:active {
+        animation: pulse 0.3s;
+    }
+}
+
+/* تحسينات الأداء */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* دعم اللمس المتقدم */
+.touch-action-manipulation {
+    touch-action: manipulation;
 }

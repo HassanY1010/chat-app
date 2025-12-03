@@ -3,18 +3,19 @@ const path = require('path');
 
 class Database {
     constructor() {
+        // استخدام قاعدة بيانات في الذاكرة مع حفظ دائم
+      // تعديل مسار قاعدة البيانات ليعمل على Render داخل مجلد /data
+const dbPath = path.join(process.cwd(), 'data', 'chat.db');
 
-        // 👈 تحديد المسار الصحيح لملف SQLite في جذر المشروع
-        const dbPath = path.join(__dirname, '../chat.db');
+this.db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+        console.error('Error opening database:', err);
+    } else {
+        console.log(`Connected to SQLite database at: ${dbPath}`);
+        this.initializeDatabase();
+    }
+});
 
-        this.db = new sqlite3.Database(dbPath, (err) => {
-            if (err) {
-                console.error('Error opening database:', err);
-            } else {
-                console.log('Connected to SQLite database');
-                this.initializeDatabase();
-            }
-        });
     }
 
     initializeDatabase() {
@@ -23,7 +24,12 @@ class Database {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sender TEXT NOT NULL,
                 message TEXT NOT NULL,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                has_voice INTEGER DEFAULT 0,
+                voice_filename TEXT,
+                voice_originalname TEXT,
+                voice_size INTEGER,
+                voice_duration INTEGER
             )
         `;
 
@@ -36,7 +42,9 @@ class Database {
             )
         `;
 
+        // استخدام serialize للتأكد من تنفيذ الأوامر بالتسلسل
         this.db.serialize(() => {
+            // 1. إنشاء الجداول أولاً
             this.db.run(createMessagesTable, (err) => {
                 if (err) console.error('Error creating messages table:', err);
             });
@@ -46,34 +54,19 @@ class Database {
                     console.error('Error creating users table:', err);
                     return;
                 }
-
+                
+                // 2. حذف جميع المستخدمين الحاليين
                 this.db.run('DELETE FROM users', (err) => {
                     if (err) {
                         console.error('Error deleting old users:', err);
                     } else {
                         console.log('All old users deleted');
                     }
-
+                    
+                    // 3. إضافة المستخدمين الجدد
                     this.initializeDefaultUsers();
                 });
             });
-        });
-    }
-
-    deleteOldUsersMessages() {
-        return new Promise((resolve, reject) => {
-            this.db.run(
-                "DELETE FROM messages WHERE sender IN ('User1', 'User2', 'User3')",
-                (err) => {
-                    if (err) {
-                        console.error('Error deleting old messages:', err);
-                        reject(err);
-                    } else {
-                        console.log('Old messages from previous users deleted');
-                        resolve();
-                    }
-                }
-            );
         });
     }
 
@@ -99,12 +92,13 @@ class Database {
         });
     }
 
-    saveMessage(sender, message) {
+    // حفظ رسالة جديدة
+    saveMessage(sender, message, hasVoice = false) {
         return new Promise((resolve, reject) => {
             this.db.run(
-                'INSERT INTO messages (sender, message) VALUES (?, ?)',
-                [sender, message],
-                function (err) {
+                'INSERT INTO messages (sender, message, has_voice) VALUES (?, ?, ?)',
+                [sender, message, hasVoice ? 1 : 0],
+                function(err) {
                     if (err) {
                         reject(err);
                     } else {
@@ -115,81 +109,106 @@ class Database {
         });
     }
 
-    getAllMessages() {
+    // حفظ رسالة صوتية
+    saveVoiceMessage(sender, voiceFile, duration) {
         return new Promise((resolve, reject) => {
-            this.db.all(
-                'SELECT id, sender, message, datetime(timestamp, "localtime") as timestamp FROM messages ORDER BY timestamp ASC',
-                (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
+            this.db.run(
+                `INSERT INTO messages 
+                 (sender, message, has_voice, voice_filename, voice_originalname, voice_size, voice_duration) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    sender,
+                    '🎤 رسالة صوتية',
+                    1,
+                    voiceFile.filename,
+                    voiceFile.originalname,
+                    voiceFile.size,
+                    duration
+                ],
+                function(err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(this.lastID);
+                    }
                 }
             );
         });
     }
 
+    // جلب جميع الرسائل
+    getAllMessages() {
+        return new Promise((resolve, reject) => {
+            this.db.all(
+                `SELECT id, sender, message, 
+                        datetime(timestamp, "localtime") as timestamp,
+                        has_voice, voice_filename, voice_originalname, 
+                        voice_size, voice_duration
+                 FROM messages 
+                 ORDER BY timestamp ASC`,
+                (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(rows);
+                    }
+                }
+            );
+        });
+    }
+
+    // تحديث حالة المستخدم
     updateUserStatus(username, status) {
         return new Promise((resolve, reject) => {
             this.db.run(
                 'UPDATE users SET status = ?, last_seen = CURRENT_TIMESTAMP WHERE username = ?',
                 [status, username],
                 (err) => {
-                    if (err) reject(err);
-                    else resolve(true);
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(true);
+                    }
                 }
             );
         });
     }
 
+    // جلب معلومات المستخدمين
     getAllUsers() {
         return new Promise((resolve, reject) => {
             this.db.all(
                 'SELECT username, status, datetime(last_seen, "localtime") as last_seen FROM users ORDER BY username ASC',
                 (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(rows);
+                    }
                 }
             );
         });
     }
 
+    // جلب آخر 50 رسالة
     getRecentMessages() {
         return new Promise((resolve, reject) => {
             this.db.all(
-                `SELECT id, sender, message, datetime(timestamp, "localtime") as timestamp 
+                `SELECT id, sender, message, 
+                        datetime(timestamp, "localtime") as timestamp,
+                        has_voice, voice_filename, voice_originalname, 
+                        voice_size, voice_duration
                  FROM messages 
                  ORDER BY timestamp DESC 
                  LIMIT 50`,
                 (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows.reverse());
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(rows.reverse()); // لإعادة الترتيب من الأقدم للأحدث
+                    }
                 }
             );
-        });
-    }
-
-    clearAllData() {
-        return new Promise((resolve, reject) => {
-            this.db.serialize(() => {
-                this.db.run('DELETE FROM messages', (err) => {
-                    if (err) {
-                        console.error('Error clearing messages:', err);
-                        reject(err);
-                    } else {
-                        console.log('All messages cleared');
-                    }
-                });
-
-                this.db.run('DELETE FROM users', (err) => {
-                    if (err) {
-                        console.error('Error clearing users:', err);
-                        reject(err);
-                    } else {
-                        console.log('All users cleared');
-                        this.initializeDefaultUsers();
-                        resolve();
-                    }
-                });
-            });
         });
     }
 

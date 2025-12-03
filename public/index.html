@@ -2,7 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>✨ دردشة ثلاثية - تجربة مراسلة فريدة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -63,9 +66,35 @@
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-4000"></div>
     </div>
 
-    <div class="relative z-10 container mx-auto p-4 max-w-7xl">
-        <!-- الهيدر -->
-        <header class="text-center mb-10 animate__animated animate__fadeInDown">
+    <!-- شريط التنقل للجوال -->
+    <nav class="lg:hidden fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <button id="mobile-menu-btn" class="p-2 rounded-lg bg-white/20">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div class="mr-3">
+                    <h1 class="text-lg font-bold">دردشة الأصدقاء</h1>
+                    <div id="mobile-connection" class="flex items-center text-xs">
+                        <span class="h-2 w-2 bg-red-400 rounded-full ml-1 animate-pulse"></span>
+                        <span>جاري الاتصال...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleSound()" class="p-2 rounded-lg bg-white/20">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <button id="mobile-user-btn" class="p-2 rounded-lg bg-white/20">
+                    <i class="fas fa-user"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="relative z-10 container mx-auto p-4 max-w-7xl pt-16 lg:pt-4">
+        <!-- الهيدر - يظهر فقط على الشاشات الكبيرة -->
+        <header class="hidden lg:block text-center mb-10 animate__animated animate__fadeInDown">
             <div class="inline-block p-4 rounded-2xl glass-effect shadow-soft mb-4">
                 <i class="fas fa-comments text-4xl text-gradient mr-3"></i>
                 <h1 class="text-4xl font-extrabold text-gradient inline-block">دردشة الأصدقاء الثلاثة</h1>
@@ -103,22 +132,119 @@
                 <div class="bg-white/80 p-4 rounded-xl shadow-soft hover:shadow-hover transition-all duration-300 transform hover:-translate-y-1">
                     <div class="flex items-center">
                         <div class="w-12 h-12 rounded-full bg-gradient-secondary flex items-center justify-center mr-3">
-                            <i class="fas fa-bolt text-white text-xl"></i>
+                            <i class="fas fa-microphone text-white text-xl"></i>
                         </div>
                         <div>
-                            <div class="text-2xl font-bold text-gray-800" id="speed-count">0.01</div>
-                            <div class="text-gray-600 text-sm">ثانية تأخير</div>
+                            <div class="text-2xl font-bold text-gray-800" id="voice-count">0</div>
+                            <div class="text-gray-600 text-sm">رسالة صوتية</div>
                         </div>
                     </div>
                 </div>
             </div>
         </header>
 
+        <!-- القائمة الجانبية للجوال -->
+        <div id="mobile-sidebar" class="fixed top-0 right-0 bottom-0 z-50 w-80 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 lg:hidden">
+            <div class="h-full flex flex-col">
+                <!-- رأس القائمة -->
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-5">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-bold text-white">
+                            <i class="fas fa-users ml-2"></i>
+                            أعضاء الدردشة
+                        </h2>
+                        <button id="close-mobile-menu" class="text-white p-2">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- محتوى القائمة -->
+                <div class="flex-grow overflow-y-auto p-5">
+                    <div id="mobile-users-list" class="space-y-4 mb-6">
+                        <!-- سيتم ملؤه بالـ JavaScript -->
+                    </div>
+                    
+                    <!-- اختيار المستخدم -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-user-check ml-2 text-blue-500"></i>
+                            اختر شخصيتك:
+                        </h3>
+                        <div class="space-y-3">
+                            <button onclick="selectUser('حسن')" class="user-select-btn w-full p-4 rounded-xl text-right transition-all duration-300 bg-gradient-to-l from-red-50 to-white border border-red-100 active:border-red-300 active:shadow-lg active:scale-[0.98]">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-md">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="mr-3">
+                                            <div class="font-bold text-gray-800">حسن</div>
+                                            <div class="text-xs text-gray-500">متصل الآن</div>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-arrow-left text-red-400"></i>
+                                </div>
+                            </button>
+                            
+                            <button onclick="selectUser('حاتم')" class="user-select-btn w-full p-4 rounded-xl text-right transition-all duration-300 bg-gradient-to-l from-green-50 to-white border border-green-100 active:border-green-300 active:shadow-lg active:scale-[0.98]">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold shadow-md">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="mr-3">
+                                            <div class="font-bold text-gray-800">حاتم</div>
+                                            <div class="text-xs text-gray-500">متصل الآن</div>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-arrow-left text-green-400"></i>
+                                </div>
+                            </button>
+                            
+                            <button onclick="selectUser('مشاري')" class="user-select-btn w-full p-4 rounded-xl text-right transition-all duration-300 bg-gradient-to-l from-purple-50 to-white border border-purple-100 active:border-purple-300 active:shadow-lg active:scale-[0.98]">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold shadow-md">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="mr-3">
+                                            <div class="font-bold text-gray-800">مشاري</div>
+                                            <div class="text-xs text-gray-500">متصل الآن</div>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-arrow-left text-purple-400"></i>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- معلومات سريعة -->
+                    <div class="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                <i class="fas fa-microphone text-blue-500"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-blue-800 mb-2">التسجيل الصوتي:</h4>
+                                <ul class="text-sm text-gray-700 space-y-1">
+                                    <li><i class="fas fa-check-circle text-green-500 ml-1"></i> انقر على زر الميكروفون للتسجيل</li>
+                                    <li><i class="fas fa-check-circle text-green-500 ml-1"></i> ارفع إصبعك للإرسال</li>
+                                    <li><i class="fas fa-check-circle text-green-500 ml-1"></i> اضغط ❌ للإلغاء</li>
+                                    <li><i class="fas fa-check-circle text-green-500 ml-1"></i> حد أقصى 60 ثانية</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- المحتوى الرئيسي -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- اللوحة الجانبية -->
-            <div class="lg:col-span-1">
-                <div class="glass-effect rounded-2xl shadow-soft overflow-hidden animate__animated animate__fadeInLeft">
+            <!-- اللوحة الجانبية - تظهر فقط على الشاشات الكبيرة -->
+            <div class="hidden lg:block lg:col-span-1">
+                <div class="glass-effect rounded-2xl shadow-soft overflow-hidden animate__animated animate__fadeInLeft h-full">
                     <!-- رأس اللوحة -->
                     <div class="bg-gradient-primary p-5">
                         <div class="flex items-center justify-between">
@@ -131,8 +257,8 @@
                     </div>
                     
                     <!-- قائمة المستخدمين -->
-                    <div class="p-5">
-                        <div id="users-list" class="space-y-4 scrollbar-thin max-h-80 overflow-y-auto p-2">
+                    <div class="p-5 h-[calc(100%-80px)] flex flex-col">
+                        <div id="users-list" class="space-y-4 scrollbar-thin flex-grow overflow-y-auto p-2">
                             <!-- سيتم ملؤه بالـ JavaScript -->
                         </div>
                         
@@ -189,24 +315,6 @@
                                 </button>
                             </div>
                         </div>
-                        
-                        <!-- معلومات سريعة -->
-                        <div class="mt-8 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
-                            <div class="flex items-start">
-                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                                    <i class="fas fa-lightbulb text-blue-500"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-blue-800 mb-2">نصائح سريعة:</h4>
-                                    <ul class="text-sm text-gray-700 space-y-1">
-                                        <li><i class="fas fa-check-circle text-green-500 ml-1"></i> اضغط Enter لإرسال سريع</li>
-                                        <li><i class="fas fa-smile text-yellow-500 ml-1"></i> استخدم الإيموجي للتعبير</li>
-                                        <li><i class="fas fa-database text-purple-500 ml-1"></i> جميع الرسائل محفوظة</li>
-                                        <li><i class="fas fa-sync text-blue-500 ml-1"></i> تحديث تلقائي فوري</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 
@@ -225,9 +333,9 @@
                         </div>
                         <div class="flex items-center p-3 rounded-lg bg-gradient-to-r from-blue-50 to-white hover:shadow-md transition-shadow">
                             <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center ml-2">
-                                <i class="fas fa-save text-blue-600"></i>
+                                <i class="fas fa-microphone-alt text-blue-600"></i>
                             </div>
-                            <span class="text-gray-700">حفظ دائم للرسائل</span>
+                            <span class="text-gray-700">رسائل صوتية</span>
                         </div>
                         <div class="flex items-center p-3 rounded-lg bg-gradient-to-r from-purple-50 to-white hover:shadow-md transition-shadow">
                             <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center ml-2">
@@ -237,9 +345,9 @@
                         </div>
                         <div class="flex items-center p-3 rounded-lg bg-gradient-to-r from-pink-50 to-white hover:shadow-md transition-shadow">
                             <div class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center ml-2">
-                                <i class="fas fa-mobile-alt text-pink-600"></i>
+                                <i class="fas fa-save text-pink-600"></i>
                             </div>
-                            <span class="text-gray-700">تصميم متجاوب كامل</span>
+                            <span class="text-gray-700">حفظ دائم للرسائل</span>
                         </div>
                     </div>
                 </div>
@@ -247,23 +355,23 @@
 
             <!-- منطقة الدردشة الرئيسية -->
             <div class="lg:col-span-3">
-                <div class="glass-effect rounded-2xl shadow-soft flex flex-col h-full overflow-hidden animate__animated animate__fadeInRight">
+                <div class="glass-effect rounded-2xl shadow-soft flex flex-col h-[calc(100vh-12rem)] lg:h-full overflow-hidden animate__animated animate__fadeInRight">
                     <!-- رأس الدردشة -->
-                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-5">
+                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-4 lg:p-5">
                         <div class="flex justify-between items-center">
                             <div class="flex items-center">
-                                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center ml-3">
-                                    <i class="fas fa-comments text-white text-xl"></i>
+                                <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white/20 flex items-center justify-center ml-3">
+                                    <i class="fas fa-comments text-white text-lg lg:text-xl"></i>
                                 </div>
-                                <div>
-                                    <h2 class="text-xl font-bold text-white">مجموعة الدردشة الرئيسية</h2>
+                                <div class="mr-3">
+                                    <h2 class="text-lg lg:text-xl font-bold text-white">مجموعة الدردشة</h2>
                                     <div class="flex items-center mt-1">
                                         <div id="connection-status" class="flex items-center">
-                                            <span class="h-3 w-3 bg-red-400 rounded-full mr-2 animate-pulse"></span>
-                                            <span class="text-sm text-white/90">جاري الاتصال...</span>
+                                            <span class="h-2 w-2 lg:h-3 lg:w-3 bg-red-400 rounded-full ml-1 lg:mr-2 animate-pulse"></span>
+                                            <span class="text-xs lg:text-sm text-white/90">جاري الاتصال...</span>
                                         </div>
-                                        <div class="mr-4 ml-4 text-white/70">|</div>
-                                        <div class="text-sm text-white/90">
+                                        <div class="mr-3 ml-3 lg:mr-4 lg:ml-4 text-white/70 hidden sm:block">|</div>
+                                        <div class="text-xs lg:text-sm text-white/90 hidden sm:flex items-center">
                                             <i class="fas fa-clock ml-1"></i>
                                             <span id="current-time">--:--</span>
                                         </div>
@@ -271,28 +379,28 @@
                                 </div>
                             </div>
                             
-                            <div class="flex items-center space-x-3 space-x-reverse">
-                                <button onclick="clearChat()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors" title="مسح الشاشة">
-                                    <i class="fas fa-broom"></i>
+                            <div class="flex items-center space-x-2 lg:space-x-3 space-x-reverse">
+                                <button onclick="clearChat()" class="bg-white/20 hover:bg-white/30 text-white p-2 lg:px-4 lg:py-2 rounded-lg transition-colors" title="مسح الشاشة">
+                                    <i class="fas fa-broom text-sm lg:text-base"></i>
                                 </button>
-                                <button onclick="toggleSound()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors" title="تفعيل الصوت" id="sound-btn">
-                                    <i class="fas fa-volume-up"></i>
+                                <button onclick="toggleSound()" class="bg-white/20 hover:bg-white/30 text-white p-2 lg:px-4 lg:py-2 rounded-lg transition-colors" title="تفعيل الصوت" id="sound-btn">
+                                    <i class="fas fa-volume-up text-sm lg:text-base"></i>
                                 </button>
-                                <button onclick="exportChat()" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors" title="تصدير المحادثة">
-                                    <i class="fas fa-download"></i>
+                                <button onclick="exportChat()" class="bg-white/20 hover:bg-white/30 text-white p-2 lg:px-4 lg:py-2 rounded-lg transition-colors" title="تصدير المحادثة">
+                                    <i class="fas fa-download text-sm lg:text-base"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                     
                     <!-- منطقة الرسائل -->
-                    <div id="chat-messages" class="flex-grow p-5 overflow-y-auto scrollbar-thin bg-gradient-to-b from-white to-gray-50/50">
-                        <div class="text-center py-10 animate__animated animate__pulse">
-                            <div class="inline-block p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50 mb-4">
-                                <i class="fas fa-comment-dots text-5xl text-gradient mb-3"></i>
-                                <h3 class="text-xl font-bold text-gray-800 mb-2">مرحبًا بك في دردشة الأصدقاء!</h3>
-                                <p class="text-gray-600 max-w-md mx-auto">
-                                    اختر مستخدمًا من القائمة لبدء المحادثة. جميع الرسائل تحفظ تلقائيًا وتبقى للأبد!
+                    <div id="chat-messages" class="flex-grow p-3 lg:p-5 overflow-y-auto scrollbar-thin bg-gradient-to-b from-white to-gray-50/50">
+                        <div class="text-center py-8 lg:py-10 animate__animated animate__pulse">
+                            <div class="inline-block p-4 lg:p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50 mb-4">
+                                <i class="fas fa-comment-dots text-4xl lg:text-5xl text-gradient mb-3"></i>
+                                <h3 class="text-lg lg:text-xl font-bold text-gray-800 mb-2">مرحبًا بك في دردشة الأصدقاء!</h3>
+                                <p class="text-gray-600 text-sm lg:text-base max-w-md mx-auto">
+                                    اختر مستخدمًا من القائمة لبدء المحادثة. يمكنك إرسال رسائل نصية أو صوتية!
                                 </p>
                             </div>
                             <div class="flex justify-center space-x-4 space-x-reverse mt-6">
@@ -304,21 +412,21 @@
                     </div>
                     
                     <!-- منطقة الإرسال -->
-                    <div class="border-t border-gray-200 p-5 bg-white/90">
+                    <div class="border-t border-gray-200 p-4 lg:p-5 bg-white/90">
                         <!-- مؤشر المستخدم المحدد -->
                         <div class="mb-4 flex items-center justify-between">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-gray-300 to-gray-400 flex items-center justify-center text-white font-bold ml-3" id="user-avatar">
+                                <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-r from-gray-300 to-gray-400 flex items-center justify-center text-white font-bold ml-3" id="user-avatar">
                                     ?
                                 </div>
                                 <div>
-                                    <div class="text-sm text-gray-500">أنت تتحدث كـ</div>
-                                    <div class="font-bold text-gray-800 text-lg" id="selected-user-display">لم تختر مستخدمًا بعد</div>
+                                    <div class="text-xs lg:text-sm text-gray-500">أنت تتحدث كـ</div>
+                                    <div class="font-bold text-gray-800 text-base lg:text-lg" id="selected-user-display">لم تختر مستخدمًا بعد</div>
                                 </div>
                             </div>
-                            <div class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                            <div class="text-xs lg:text-sm text-gray-500 bg-gray-100 px-2 lg:px-3 py-1 rounded-full hidden sm:block">
                                 <i class="fas fa-keyboard ml-1"></i>
-                                Ctrl+Enter للإرسال
+                                Enter للإرسال | 🎤 للتسجيل
                             </div>
                         </div>
                         
@@ -326,26 +434,36 @@
                         <div class="relative">
                             <!-- شريط الأدوات -->
                             <div class="flex items-center mb-3 space-x-2 space-x-reverse">
+                                <!-- زر التسجيل الصوتي -->
+                                <button id="voice-record-btn" class="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white p-2 lg:p-3 rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed relative group" title="تسجيل رسالة صوتية">
+                                    <i class="fas fa-microphone text-lg lg:text-xl"></i>
+                                    <span class="absolute -top-1 -right-1 lg:-top-2 lg:-right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 lg:w-5 lg:h-5 flex items-center justify-center hidden group-hover:flex">
+                                        <i class="fas fa-waveform-lines text-xs"></i>
+                                    </span>
+                                </button>
+                                
                                 <!-- زر الإيموجي -->
-                                <button id="emoji-toggle" class="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white p-3 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed" title="إضافة إيموجي">
-                                    <i class="fas fa-smile text-xl"></i>
+                                <button id="emoji-toggle" class="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white p-2 lg:p-3 rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" title="إضافة إيموجي">
+                                    <i class="fas fa-smile text-lg lg:text-xl"></i>
                                 </button>
                                 
                                 <!-- أزرار التنسيق -->
-                                <button onclick="formatText('bold')" class="bg-gray-200 hover:bg-gray-300 p-3 rounded-xl transition-colors" title="عريض">
+                                <button onclick="formatText('bold')" class="bg-gray-200 hover:bg-gray-300 p-2 lg:p-3 rounded-xl transition-colors active:scale-95 hidden sm:block" title="عريض">
                                     <i class="fas fa-bold"></i>
                                 </button>
-                                <button onclick="formatText('italic')" class="bg-gray-200 hover:bg-gray-300 p-3 rounded-xl transition-colors" title="مائل">
+                                <button onclick="formatText('italic')" class="bg-gray-200 hover:bg-gray-300 p-2 lg:p-3 rounded-xl transition-colors active:scale-95 hidden sm:block" title="مائل">
                                     <i class="fas fa-italic"></i>
                                 </button>
-                                <button onclick="insertText('😂 ')" class="bg-gray-200 hover:bg-gray-300 p-3 rounded-xl transition-colors" title="إضافة ضحك">
+                                
+                                <!-- زر الإيموجي السريع -->
+                                <button onclick="insertText('😂 ')" class="bg-gray-200 hover:bg-gray-300 p-2 lg:p-3 rounded-xl transition-colors active:scale-95 block sm:hidden" title="إضافة ضحك">
                                     😂
                                 </button>
                                 
                                 <!-- قائمة الإيموجي -->
-                                <div id="emoji-picker" class="hidden absolute bottom-16 right-0 bg-white border border-gray-300 rounded-2xl shadow-2xl z-50 w-96 h-96">
-                                    <div class="p-4 border-b flex justify-between items-center bg-gradient-to-r from-yellow-50 to-orange-50 rounded-t-2xl">
-                                        <span class="font-bold text-gray-800">
+                                <div id="emoji-picker" class="hidden fixed lg:absolute bottom-20 lg:bottom-16 right-2 lg:right-0 bg-white border border-gray-300 rounded-2xl shadow-2xl z-50 w-[calc(100vw-1rem)] lg:w-96 h-80 lg:h-96">
+                                    <div class="p-3 lg:p-4 border-b flex justify-between items-center bg-gradient-to-r from-yellow-50 to-orange-50 rounded-t-2xl">
+                                        <span class="font-bold text-gray-800 text-sm lg:text-base">
                                             <i class="fas fa-smile-beam text-yellow-500 ml-2"></i>
                                             مكتبة الإيموجي
                                         </span>
@@ -354,9 +472,9 @@
                                                 type="text" 
                                                 id="emoji-search" 
                                                 placeholder="ابحث عن إيموجي..."
-                                                class="text-sm p-2 border border-gray-300 rounded-lg w-40 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                                                class="text-sm p-2 border border-gray-300 rounded-lg w-32 lg:w-40 focus:outline-none focus:ring-2 focus:ring-yellow-300"
                                             >
-                                            <button id="close-emoji" class="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-200">
+                                            <button id="close-emoji" class="text-gray-500 hover:text-gray-700 p-1 lg:p-2 rounded-full hover:bg-gray-200">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
@@ -364,22 +482,60 @@
                                     
                                     <!-- فئات الإيموجي -->
                                     <div class="flex border-b overflow-x-auto">
-                                        <button class="emoji-category active px-4 py-2 text-sm font-medium border-b-2 border-yellow-500 text-yellow-600">جميع</button>
-                                        <button class="emoji-category px-4 py-2 text-sm font-medium text-gray-600 hover:text-yellow-600">مشاعر</button>
-                                        <button class="emoji-category px-4 py-2 text-sm font-medium text-gray-600 hover:text-yellow-600">أشخاص</button>
-                                        <button class="emoji-category px-4 py-2 text-sm font-medium text-gray-600 hover:text-yellow-600">حيوانات</button>
-                                        <button class="emoji-category px-4 py-2 text-sm font-medium text-gray-600 hover:text-yellow-600">أطعمة</button>
+                                        <button class="emoji-category active px-3 lg:px-4 py-2 text-xs lg:text-sm font-medium border-b-2 border-yellow-500 text-yellow-600">جميع</button>
+                                        <button class="emoji-category px-3 lg:px-4 py-2 text-xs lg:text-sm font-medium text-gray-600 hover:text-yellow-600">مشاعر</button>
+                                        <button class="emoji-category px-3 lg:px-4 py-2 text-xs lg:text-sm font-medium text-gray-600 hover:text-yellow-600">أشخاص</button>
+                                        <button class="emoji-category px-3 lg:px-4 py-2 text-xs lg:text-sm font-medium text-gray-600 hover:text-yellow-600">حيوانات</button>
+                                        <button class="emoji-category px-3 lg:px-4 py-2 text-xs lg:text-sm font-medium text-gray-600 hover:text-yellow-600">أطعمة</button>
                                     </div>
                                     
                                     <!-- شبكة الإيموجي -->
-                                    <div id="emoji-grid" class="emoji-grid p-4 overflow-y-auto h-64 grid grid-cols-10 gap-2">
+                                    <div id="emoji-grid" class="emoji-grid p-3 lg:p-4 overflow-y-auto h-56 lg:h-64 grid grid-cols-8 lg:grid-cols-10 gap-1 lg:gap-2">
                                         <!-- سيتم ملؤه بالـ JavaScript -->
                                     </div>
                                     
                                     <!-- تذييل -->
-                                    <div class="p-3 border-t bg-gray-50 text-xs text-gray-500 text-center rounded-b-2xl">
+                                    <div class="p-2 lg:p-3 border-t bg-gray-50 text-xs text-gray-500 text-center rounded-b-2xl">
                                         <i class="fas fa-lightbulb ml-1"></i>
                                         انقر على الإيموجي لإضافته إلى الرسالة
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- حالة التسجيل الصوتي -->
+                            <div id="voice-recording-container" class="hidden mb-3 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-3 lg:p-4 animate__animated animate__fadeIn">
+                                <div class="flex flex-col lg:flex-row lg:items-center justify-between space-y-3 lg:space-y-0">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-red-500 flex items-center justify-center mr-3 animate-pulse">
+                                            <i class="fas fa-microphone text-white text-sm lg:text-base"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-red-700 text-sm lg:text-base">جاري التسجيل...</div>
+                                            <div class="text-xs lg:text-sm text-red-600">
+                                                <i class="fas fa-clock ml-1"></i>
+                                                <span id="recording-timer">00:00</span> / 01:00
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2 space-x-reverse justify-end lg:justify-start">
+                                        <!-- مؤشر تسجيل -->
+                                        <div class="flex items-center space-x-1">
+                                            <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                            <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse animation-delay-200"></div>
+                                            <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse animation-delay-400"></div>
+                                        </div>
+                                        <button id="send-voice-btn" class="bg-green-500 hover:bg-green-600 text-white px-3 lg:px-4 py-2 rounded-lg transition-colors active:scale-95" title="إرسال التسجيل">
+                                            <i class="fas fa-paper-plane text-sm lg:text-base"></i>
+                                        </button>
+                                        <button id="cancel-voice-btn" class="bg-red-500 hover:bg-red-600 text-white px-3 lg:px-4 py-2 rounded-lg transition-colors active:scale-95" title="إلغاء التسجيل">
+                                            <i class="fas fa-times text-sm lg:text-base"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- شريط التسجيل -->
+                                <div class="mt-3">
+                                    <div class="w-full bg-red-200 rounded-full h-2">
+                                        <div id="recording-level" class="bg-red-500 h-2 rounded-full w-1/2 animate-pulse"></div>
                                     </div>
                                 </div>
                             </div>
@@ -388,32 +544,32 @@
                             <div class="relative">
                                 <textarea 
                                     id="message-input" 
-                                    placeholder="اكتب رسالتك هنا... اضغط Enter للإرسال، Ctrl+Enter للسطر الجديد"
-                                    class="w-full p-4 border-2 border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-                                    rows="3"
+                                    placeholder="اكتب رسالتك هنا... أو استخدم زر الميكروفون للتسجيل الصوتي"
+                                    class="w-full p-3 lg:p-4 border-2 border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 resize-none disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
+                                    rows="1"
                                     disabled
                                 ></textarea>
                                 
                                 <!-- عداد الأحرف -->
-                                <div class="absolute bottom-3 left-3 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
-                                    <span id="char-count">0</span>/500 حرف
+                                <div class="absolute bottom-2 lg:bottom-3 left-2 lg:left-3 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+                                    <span id="char-count">0</span>/500
                                 </div>
                             </div>
                             
                             <!-- زر الإرسال -->
-                            <div class="flex justify-between items-center mt-3">
-                                <div class="text-sm text-gray-500">
+                            <div class="flex flex-col sm:flex-row justify-between items-center mt-3 space-y-2 sm:space-y-0">
+                                <div class="text-xs lg:text-sm text-gray-500 order-2 sm:order-1">
                                     <i class="fas fa-shield-alt text-green-500 ml-1"></i>
                                     مشفر · محفوظ · آمن
                                 </div>
                                 <button 
                                     id="send-btn" 
-                                    class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center group"
+                                    class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-2 lg:py-3 px-6 lg:px-8 rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center group w-full sm:w-auto order-1 sm:order-2"
                                     disabled
                                 >
-                                    <i class="fas fa-paper-plane ml-2 group-hover:animate-bounce"></i>
-                                    إرسال الرسالة
-                                    <span class="mr-2 text-xs opacity-70">(Enter)</span>
+                                    <i class="fas fa-paper-plane ml-2 text-sm lg:text-base"></i>
+                                    <span class="flex-grow text-center lg:text-right">إرسال الرسالة</span>
+                                    <span class="mr-2 text-xs opacity-70 hidden sm:inline">(Enter)</span>
                                 </button>
                             </div>
                         </div>
@@ -423,117 +579,129 @@
         </div>
 
         <!-- الفوتر -->
-        <footer class="mt-10 pt-6 border-t border-gray-200">
+        <footer class="mt-6 lg:mt-10 pt-4 lg:pt-6 border-t border-gray-200">
             <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="text-gray-600 mb-4 md:mb-0">
-                    <div class="flex items-center">
+                <div class="text-gray-600 mb-4 md:mb-0 text-center md:text-right">
+                    <div class="flex items-center justify-center md:justify-start">
                         <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center ml-2">
                             <i class="fas fa-comment text-white text-sm"></i>
                         </div>
                         <div>
-                            <p class="font-medium">© 2024 دردشة الأصدقاء الثلاثة</p>
-                            <p class="text-sm mt-1">جميع الحقوق محفوظة · تصميم وتطوير متكامل</p>
+                            <p class="font-medium text-sm lg:text-base">© 2024 دردشة الأصدقاء الثلاثة</p>
+                            <p class="text-xs lg:text-sm mt-1">مع ميزة الرسائل الصوتية المتقدمة</p>
                         </div>
                     </div>
                 </div>
                 
-                <div class="flex space-x-4 space-x-reverse">
-                    <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors">
-                        <i class="fab fa-github text-lg"></i>
+                <div class="flex space-x-3 lg:space-x-4 space-x-reverse mb-4 md:mb-0">
+                    <a href="#" class="text-gray-600 hover:text-blue-600 transition-colors" aria-label="GitHub">
+                        <i class="fab fa-github text-base lg:text-lg"></i>
                     </a>
-                    <a href="#" class="text-gray-600 hover:text-blue-400 transition-colors">
-                        <i class="fab fa-twitter text-lg"></i>
+                    <a href="#" class="text-gray-600 hover:text-blue-400 transition-colors" aria-label="Twitter">
+                        <i class="fab fa-twitter text-base lg:text-lg"></i>
                     </a>
-                    <a href="#" class="text-gray-600 hover:text-red-500 transition-colors">
-                        <i class="fab fa-youtube text-lg"></i>
+                    <a href="#" class="text-gray-600 hover:text-red-500 transition-colors" aria-label="YouTube">
+                        <i class="fab fa-youtube text-base lg:text-lg"></i>
                     </a>
-                    <a href="#" class="text-gray-600 hover:text-green-500 transition-colors">
-                        <i class="fab fa-whatsapp text-lg"></i>
+                    <a href="#" class="text-gray-600 hover:text-green-500 transition-colors" aria-label="WhatsApp">
+                        <i class="fab fa-whatsapp text-base lg:text-lg"></i>
                     </a>
                 </div>
                 
-                <div class="mt-4 md:mt-0 text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
-                    <i class="fas fa-heart text-red-400 ml-1"></i>
-                    مصمم بـ <span class="font-bold text-purple-600">حب</span> للتواصل الفعال
+                <div class="text-xs lg:text-sm text-gray-500 bg-gray-100 px-3 lg:px-4 py-2 rounded-full text-center">
+                    <i class="fas fa-microphone text-purple-500 ml-1"></i>
+                    تحدث بدلاً من الكتابة!
                 </div>
             </div>
             
             <!-- إحصائيات خفية -->
-            <div class="text-center mt-6 text-xs text-gray-400">
-                <span id="app-version">الإصدار 2.0.1</span> · 
+            <div class="text-center mt-4 lg:mt-6 text-xs text-gray-400">
+                <span id="app-version">الإصدار 3.0.0</span> · 
                 <span id="message-total">0 رسالة</span> · 
-                <span id="uptime">مستمر منذ: 00:00:00</span>
+                <span id="voice-total">0 رسالة صوتية</span>
             </div>
         </footer>
     </div>
 
-    <!-- نافذة الترحيب -->
-    <div id="welcome-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 hidden animate__animated">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate__animated animate__zoomIn">
-            <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-center">
-                <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-comments text-white text-3xl"></i>
+    <!-- نافذة ترحيب -->
+    <div id="welcome-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 hidden animate__animated p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate__animated animate__zoomIn">
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-5 lg:p-6 text-center">
+                <div class="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-microphone-alt text-white text-2xl lg:text-3xl"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-white">مرحبًا بك! 👋</h3>
-                <p class="text-white/90 mt-2">في أفضل تجربة دردشة على الويب</p>
+                <h3 class="text-xl lg:text-2xl font-bold text-white">🎤 ميزة جديدة!</h3>
+                <p class="text-white/90 mt-2 text-sm lg:text-base">الآن يمكنك إرسال رسائل صوتية</p>
             </div>
-            <div class="p-6">
-                <p class="text-gray-700 mb-6 text-center">
-                    اختر مستخدمًا لبدء المحادثة. يمكنك فتح نافذتين للمحادثة مع نفسك!
+            <div class="p-5 lg:p-6">
+                <p class="text-gray-700 mb-6 text-center text-sm lg:text-base">
+                    اختر مستخدمًا لبدء المحادثة. استخدم زر الميكروفون للتسجيل الصوتي!
                 </p>
                 <div class="space-y-3">
-                    <button onclick="selectUser('حسن')" class="w-full p-4 rounded-xl bg-gradient-to-r from-red-50 to-white border border-red-200 hover:border-red-400 hover:shadow-md transition-all text-right">
+                    <button onclick="selectUser('حسن')" class="w-full p-3 lg:p-4 rounded-xl bg-gradient-to-r from-red-50 to-white border border-red-200 hover:border-red-400 hover:shadow-md transition-all text-right active:scale-95">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                                <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center text-white font-bold">
                                     ح
                                 </div>
                                 <div class="mr-3">
-                                    <div class="font-bold text-gray-800">حسن</div>
+                                    <div class="font-bold text-gray-800 text-sm lg:text-base">حسن</div>
                                     <div class="text-xs text-gray-500">اللون: أحمر</div>
                                 </div>
                             </div>
-                            <i class="fas fa-chevron-left text-red-400"></i>
+                            <i class="fas fa-chevron-left text-red-400 text-sm lg:text-base"></i>
                         </div>
                     </button>
                     
-                    <button onclick="selectUser('حاتم')" class="w-full p-4 rounded-xl bg-gradient-to-r from-green-50 to-white border border-green-200 hover:border-green-400 hover:shadow-md transition-all text-right">
+                    <button onclick="selectUser('حاتم')" class="w-full p-3 lg:p-4 rounded-xl bg-gradient-to-r from-green-50 to-white border border-green-200 hover:border-green-400 hover:shadow-md transition-all text-right active:scale-95">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold">
+                                <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold">
                                     ح
                                 </div>
                                 <div class="mr-3">
-                                    <div class="font-bold text-gray-800">حاتم</div>
+                                    <div class="font-bold text-gray-800 text-sm lg:text-base">حاتم</div>
                                     <div class="text-xs text-gray-500">اللون: أخضر</div>
                                 </div>
                             </div>
-                            <i class="fas fa-chevron-left text-green-400"></i>
+                            <i class="fas fa-chevron-left text-green-400 text-sm lg:text-base"></i>
                         </div>
                     </button>
                     
-                    <button onclick="selectUser('مشاري')" class="w-full p-4 rounded-xl bg-gradient-to-r from-purple-50 to-white border border-purple-200 hover:border-purple-400 hover:shadow-md transition-all text-right">
+                    <button onclick="selectUser('مشاري')" class="w-full p-3 lg:p-4 rounded-xl bg-gradient-to-r from-purple-50 to-white border border-purple-200 hover:border-purple-400 hover:shadow-md transition-all text-right active:scale-95">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold">
+                                <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold">
                                     م
                                 </div>
                                 <div class="mr-3">
-                                    <div class="font-bold text-gray-800">مشاري</div>
+                                    <div class="font-bold text-gray-800 text-sm lg:text-base">مشاري</div>
                                     <div class="text-xs text-gray-500">اللون: بنفسجي</div>
                                 </div>
                             </div>
-                            <i class="fas fa-chevron-left text-purple-400"></i>
+                            <i class="fas fa-chevron-left text-purple-400 text-sm lg:text-base"></i>
                         </div>
                     </button>
                 </div>
-                <div class="mt-6 text-center text-sm text-gray-500">
-                    <i class="fas fa-info-circle ml-1"></i>
-                    يمكنك تغيير المستخدم في أي وقت
+                <div class="mt-6 p-3 lg:p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-red-100 flex items-center justify-center ml-3">
+                            <i class="fas fa-microphone text-red-500 text-sm lg:text-base"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800 text-sm lg:text-base">نصيحة:</h4>
+                            <p class="text-xs lg:text-sm text-gray-600">اضغط مع الاستمرار على زر الميكروفون للتسجيل</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- زر العودة للأعلى للجوال -->
+    <button id="scroll-to-top" class="fixed bottom-4 left-4 z-30 bg-gradient-to-r from-blue-500 to-purple-500 text-white w-10 h-10 rounded-full shadow-lg hidden items-center justify-center transition-all duration-300 active:scale-95">
+        <i class="fas fa-chevron-up"></i>
+    </button>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="main.js"></script>
@@ -543,11 +711,14 @@
             // تحديث الوقت الحالي
             function updateTime() {
                 const now = new Date();
-                const timeString = now.toLocaleTimeString('ar-SA');
+                const timeString = now.toLocaleTimeString('ar-SA', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
                 document.getElementById('current-time').textContent = timeString;
             }
             updateTime();
-            setInterval(updateTime, 1000);
+            setInterval(updateTime, 60000);
             
             // عداد الأحرف
             const messageInput = document.getElementById('message-input');
@@ -561,20 +732,98 @@
                     } else {
                         charCount.classList.remove('text-red-500');
                     }
+                    
+                    // تعديل ارتفاع مربع النص تلقائياً
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
                 });
             }
             
             // عرض نافذة الترحيب
             setTimeout(() => {
                 const welcomeModal = document.getElementById('welcome-modal');
-                welcomeModal.classList.remove('hidden');
-                welcomeModal.classList.add('animate__zoomIn');
+                if (welcomeModal && !localStorage.getItem('welcomeShown')) {
+                    welcomeModal.classList.remove('hidden');
+                    welcomeModal.classList.add('animate__zoomIn');
+                    localStorage.setItem('welcomeShown', 'true');
+                }
             }, 1000);
             
             // إغلاق نافذة الترحيب عند النقر خارجها
             document.getElementById('welcome-modal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     this.classList.add('hidden');
+                }
+            });
+            
+            // التحكم في القائمة الجانبية للجوال
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+            const mobileSidebar = document.getElementById('mobile-sidebar');
+            const mobileUserBtn = document.getElementById('mobile-user-btn');
+            
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    mobileSidebar.classList.remove('translate-x-full');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+            
+            if (closeMobileMenu) {
+                closeMobileMenu.addEventListener('click', () => {
+                    mobileSidebar.classList.add('translate-x-full');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+            
+            if (mobileUserBtn) {
+                mobileUserBtn.addEventListener('click', () => {
+                    mobileSidebar.classList.remove('translate-x-full');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+            
+            // إغلاق القائمة عند النقر خارجها
+            mobileSidebar.addEventListener('click', (e) => {
+                if (e.target === mobileSidebar) {
+                    mobileSidebar.classList.add('translate-x-full');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+            
+            // زر العودة للأعلى
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.innerWidth < 768) { // فقط للجوال
+                    if (window.scrollY > 300) {
+                        scrollToTopBtn.classList.remove('hidden');
+                        scrollToTopBtn.classList.add('flex');
+                    } else {
+                        scrollToTopBtn.classList.remove('flex');
+                        scrollToTopBtn.classList.add('hidden');
+                    }
+                }
+            });
+            
+            if (scrollToTopBtn) {
+                scrollToTopBtn.addEventListener('click', () => {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+            
+            // إغلاق قائمة الإيموجي عند النقر خارجها
+            document.addEventListener('click', (e) => {
+                const emojiPicker = document.getElementById('emoji-picker');
+                const emojiToggle = document.getElementById('emoji-toggle');
+                
+                if (emojiPicker && !emojiPicker.classList.contains('hidden')) {
+                    if (!emojiPicker.contains(e.target) && !emojiToggle.contains(e.target)) {
+                        emojiPicker.classList.add('hidden');
+                    }
                 }
             });
             
@@ -681,8 +930,145 @@
                 .floating {
                     animation: float 3s ease-in-out infinite;
                 }
+                
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                }
+                
+                .pulse {
+                    animation: pulse 2s infinite;
+                }
+                
+                /* تحسينات للمس */
+                @media (hover: none) and (pointer: coarse) {
+                    button, a, input, textarea {
+                        -webkit-tap-highlight-color: transparent;
+                    }
+                    
+                    button:active, a:active {
+                        transform: scale(0.97);
+                    }
+                    
+                    .user-select-btn:active {
+                        transform: translateX(-2px);
+                    }
+                    
+                    #emoji-toggle:active, #voice-record-btn:active, #send-btn:active {
+                        transform: scale(0.95);
+                    }
+                }
+                
+                /* تحسينات للأجهزة الصغيرة جداً */
+                @media (max-width: 360px) {
+                    .container {
+                        padding-left: 0.5rem;
+                        padding-right: 0.5rem;
+                    }
+                    
+                    #welcome-modal {
+                        padding-left: 0.5rem;
+                        padding-right: 0.5rem;
+                    }
+                    
+                    #emoji-picker {
+                        width: calc(100vw - 0.5rem);
+                        right: 0.25rem;
+                    }
+                }
+                
+                /* تحسينات للأجهزة اللوحية */
+                @media (min-width: 768px) and (max-width: 1024px) {
+                    .container {
+                        max-width: 95%;
+                    }
+                    
+                    #chat-messages {
+                        max-height: 50vh;
+                    }
+                }
+                
+                /* منع التكبير في حقول النص على الجوال */
+                input, textarea {
+                    font-size: 16px; /* منع التكبير في iOS */
+                }
+                
+                /* تحسينات لشريط التمرير على الجوال */
+                @media (hover: none) {
+                    ::-webkit-scrollbar {
+                        width: 4px;
+                    }
+                    
+                    .scrollbar-thin::-webkit-scrollbar {
+                        width: 4px;
+                    }
+                }
+                
+                /* تحسينات للأوضاع الرأسية والأفقية */
+                @media (orientation: landscape) and (max-height: 600px) {
+                    #chat-messages {
+                        max-height: 40vh;
+                    }
+                    
+                    .glass-effect {
+                        height: 85vh;
+                    }
+                }
             `;
             document.head.appendChild(style);
+            
+            // إعادة تعيين ارتفاع الصفحة عند تغيير حجم النافذة
+            function adjustLayout() {
+                const isMobile = window.innerWidth < 768;
+                const chatContainer = document.querySelector('.glass-effect.rounded-2xl');
+                
+                if (isMobile && chatContainer) {
+                    const windowHeight = window.innerHeight;
+                    const containerTop = chatContainer.getBoundingClientRect().top;
+                    const availableHeight = windowHeight - containerTop - 20;
+                    chatContainer.style.height = availableHeight + 'px';
+                }
+            }
+            
+            window.addEventListener('resize', adjustLayout);
+            adjustLayout();
+            
+            // دعم اللمس المتقدم للتسجيل الصوتي
+            let touchStartTime;
+            let touchTimer;
+            
+            document.getElementById('voice-record-btn').addEventListener('touchstart', function(e) {
+                if (window.innerWidth < 768) {
+                    e.preventDefault();
+                    touchStartTime = Date.now();
+                    
+                    touchTimer = setTimeout(() => {
+                        if (typeof startVoiceRecording === 'function') {
+                            startVoiceRecording();
+                        }
+                    }, 500);
+                }
+            });
+            
+            document.getElementById('voice-record-btn').addEventListener('touchend', function(e) {
+                if (window.innerWidth < 768 && touchTimer) {
+                    e.preventDefault();
+                    clearTimeout(touchTimer);
+                    
+                    const touchDuration = Date.now() - touchStartTime;
+                    if (touchDuration < 500 && typeof sendMessage === 'function') {
+                        // نقر قصير - إرسال رسالة نصية
+                        sendMessage();
+                    }
+                }
+            });
+            
+            // منع سياق القائمة على الجوال
+            document.addEventListener('contextmenu', function(e) {
+                if (window.innerWidth < 768) {
+                    e.preventDefault();
+                }
+            });
         });
     </script>
 </body>
