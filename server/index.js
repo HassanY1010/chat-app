@@ -61,6 +61,100 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/uploads', express.static(uploadsDir));
 
 // ===============================
+//  🔥 رابط إعادة ضبط قاعدة البيانات (لحل مشكلة الأعمدة المفقودة)
+// ===============================
+app.get('/reset-db', async (req, res) => {
+    try {
+        // حذف ملف قاعدة البيانات وإعادة إنشائه
+        const dbPath = path.join(process.cwd(), 'data', 'chat.db');
+        
+        if (fs.existsSync(dbPath)) {
+            fs.unlinkSync(dbPath);
+            console.log('🗑️ Database file deleted');
+        }
+        
+        // إعادة إنشاء مجلد data
+        fs.ensureDirSync(path.join(process.cwd(), 'data'));
+        
+        // إعادة إنشاء مجلد uploads
+        fs.ensureDirSync(uploadsDir);
+        
+        // إغلاق اتصال قاعدة البيانات الحالي
+        if (db.db) {
+            db.db.close();
+        }
+        
+        // إعادة تهيئة قاعدة البيانات
+        delete require.cache[require.resolve('./db')];
+        
+        res.json({ 
+            success: true, 
+            message: 'Database reset successfully. Please restart your server.',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (err) {
+        console.error('Error resetting database:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ===============================
+//  🔥 رابط فحص حالة قاعدة البيانات
+// ===============================
+app.get('/db-status', async (req, res) => {
+    try {
+        const dbPath = path.join(process.cwd(), 'data', 'chat.db');
+        const dbExists = fs.existsSync(dbPath);
+        
+        const status = {
+            dbExists: dbExists,
+            dbPath: dbPath,
+            uploadsDir: uploadsDir,
+            uploadsDirExists: fs.existsSync(uploadsDir),
+            timestamp: new Date().toISOString(),
+            serverTime: new Date().toLocaleString('ar-SA'),
+            environment: process.env.NODE_ENV || 'development',
+            port: PORT
+        };
+        
+        if (dbExists) {
+            try {
+                // اختبار استعلام بسيط
+                const users = await db.getAllUsers();
+                status.usersCount = users.length;
+                status.dbTest = 'PASSED';
+                
+                // التحقق من هيكل الجدول
+                db.db.all('PRAGMA table_info(messages)', (err, columns) => {
+                    if (!err) {
+                        status.tableColumns = columns.map(col => ({
+                            name: col.name,
+                            type: col.type,
+                            notnull: col.notnull,
+                            dflt_value: col.dflt_value
+                        }));
+                    }
+                    res.json(status);
+                });
+                return;
+            } catch (dbErr) {
+                status.dbTest = 'FAILED';
+                status.dbError = dbErr.message;
+            }
+        }
+        
+        res.json(status);
+        
+    } catch (err) {
+        res.status(500).json({ 
+            error: err.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// ===============================
 //  🔥 API رفع الصوتيات
 // ===============================
 app.post('/api/upload-voice', upload.single('voice'), async (req, res) => {
@@ -113,6 +207,13 @@ app.get('/api/users', async (req, res) => {
         console.error('Error fetching users:', err);
         res.status(500).json({ error: 'Failed to fetch users' });
     }
+});
+
+// ===============================
+//  🔥 رابط رئيسي للصفحة الرئيسية
+// ===============================
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
 // ===============================
@@ -218,12 +319,50 @@ io.on('connection', async (socket) => {
 });
 
 // ===============================
+//  🔥 رابط اختبار السيرفر
+// ===============================
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        serverTime: new Date().toLocaleString('ar-SA'),
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// ===============================
+//  🔥 معالجة الأخطاء
+// ===============================
+app.use((req, res, next) => {
+    res.status(404).json({
+        error: 'Not Found',
+        path: req.path,
+        method: req.method,
+        timestamp: new Date().toISOString()
+    });
+});
+
+app.use((err, req, res, next) => {
+    console.error('Server error:', err);
+    res.status(500).json({
+        error: 'Internal Server Error',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// ===============================
 //  🔥 تشغيل السيرفر
 // ===============================
 server.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
     console.log(`📁 Uploads directory: ${uploadsDir}`);
     console.log(`🌐 Web interface: http://localhost:${PORT}`);
+    console.log(`🔄 Reset DB: http://localhost:${PORT}/reset-db`);
+    console.log(`🔧 DB Status: http://localhost:${PORT}/db-status`);
+    console.log(`❤️ Health Check: http://localhost:${PORT}/health`);
 });
 
 // ===============================
@@ -231,6 +370,22 @@ server.listen(PORT, () => {
 // ===============================
 process.on('SIGINT', () => {
     console.log('Shutting down server...');
-    db.close();
-    process.exit(0);
+    if (db.db) {
+        db.db.close();
+    }
+    server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
+});
+
+process.on('SIGTERM', () => {
+    console.log('Received SIGTERM, shutting down gracefully...');
+    if (db.db) {
+        db.db.close();
+    }
+    server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
 });
