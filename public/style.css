@@ -1,0 +1,274 @@
+/* تخصيصات متقدمة */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --warning-gradient: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+}
+
+/* خط عربي جميل */
+body {
+    font-family: 'Cairo', sans-serif;
+}
+
+/* تخصيصات متقدمة للإيموجي */
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 8px;
+    direction: ltr;
+    padding: 15px;
+}
+
+.emoji-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    border: none;
+}
+
+.emoji-btn:hover {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    transform: scale(1.2) rotate(5deg);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.emoji-category {
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.emoji-category.active {
+    color: #7c3aed;
+    font-weight: 700;
+}
+
+/* تخصيصات شريط التمرير */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: linear-gradient(180deg, #f1f1f1 0%, #e1e1e1 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    border: 2px solid #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a67d8 0%, #6b46c1 100%);
+}
+
+/* رسائل الدردشة المتحركة */
+@keyframes messageAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.message-enter {
+    animation: messageAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* تأثيرات النص */
+.text-glow {
+    text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+}
+
+/* أزرار تفاعلية */
+.pulse-button {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(102, 126, 234, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+}
+
+/* تأثيرات التحميل */
+.loading-dots {
+    display: inline-flex;
+    gap: 5px;
+}
+
+.loading-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #667eea;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
+}
+
+/* تأثيرات دخول العناصر */
+.fade-in-up {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* تصميم متجاوب */
+@media (max-width: 768px) {
+    .emoji-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 6px;
+        padding: 10px;
+    }
+    
+    .emoji-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1.3rem;
+    }
+    
+    #emoji-picker {
+        width: 90vw !important;
+        height: 70vh !important;
+        bottom: 70px !important;
+    }
+}
+
+/* تخصيصات للأجهزة الدارك مود */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #e2e8f0;
+    }
+    
+    .glass-effect {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .bg-gradient-to-b {
+        background: linear-gradient(to bottom, #1e293b, #0f172a);
+    }
+}
+
+/* تأثيرات خاصة للرسائل */
+.message-bubble {
+    position: relative;
+    overflow: hidden;
+}
+
+.message-bubble::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* تخصيصات لون المستخدمين */
+.user-hasan .user-avatar {
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%) !important;
+}
+
+.user-hatem .user-avatar {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%) !important;
+}
+
+.user-meshari .user-avatar {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%) !important;
+}
+
+/* تأثيرات التركيز */
+:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* تحسينات النصوص العربية */
+.arabic-text {
+    line-height: 1.8;
+    letter-spacing: -0.5px;
+}
+
+/* تأثيرات الظل */
+.shadow-deep {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.shadow-light {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* تأثيرات التحويم */
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* تخصيصات الإدخال */
+.input-modern {
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border: none;
+    box-shadow: inset 5px 5px 10px #d9d9d9, 
+                inset -5px -5px 10px #ffffff;
+}
+
+.input-modern:focus {
+    box-shadow: inset 2px 2px 5px #d9d9d9, 
+                inset -2px -2px 5px #ffffff,
+                0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* تأثيرات الخلفيات */
+.bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
