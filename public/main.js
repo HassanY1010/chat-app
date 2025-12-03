@@ -63,6 +63,7 @@ function connectToServer() {
     });
 
     socket.on('new_message', (message) => {
+        console.log('New message received:', message);
         addMessageToChat(message);
         scrollToBottom();
 
@@ -79,10 +80,12 @@ function connectToServer() {
     });
 
     socket.on('users_update', (users) => {
+        console.log('Users updated:', users);
         renderUsers(users);
     });
 
     socket.on('error', (errorMsg) => {
+        console.error('Socket error:', errorMsg);
         showError(errorMsg);
     });
 }
@@ -215,10 +218,10 @@ function addMessageToChat(message, animate = true) {
     const chatMessages = document.getElementById('chat-messages');
     if (!chatMessages) return;
 
-    // إزالة رسالة "جارٍ تحميل الرسائل" إذا كانت موجودة
-    const loadingMsg = chatMessages.querySelector('.text-center');
-    if (loadingMsg) {
-        loadingMsg.remove();
+    // إزالة رسالة "لا توجد رسائل" إذا كانت موجودة
+    const noMessagesMsg = chatMessages.querySelector('.text-center');
+    if (noMessagesMsg) {
+        noMessagesMsg.remove();
     }
 
     const messageElement = document.createElement('div');
@@ -229,7 +232,7 @@ function addMessageToChat(message, animate = true) {
     const bgColorClass = isCurrentUser ? 'bg-blue-100 border-blue-200' : 'bg-gray-100 border-gray-200';
 
     // التحقق إذا كانت رسالة صوتية
-    if (message.has_voice) {
+    if (message.has_voice && message.voice_filename) {
         const voiceUrl = `/uploads/${message.voice_filename}`;
         const duration = message.voice_duration || 0;
         const durationText = formatDuration(duration);
@@ -241,7 +244,7 @@ function addMessageToChat(message, animate = true) {
                         ${message.sender.charAt(0)}
                     </div>
                     <span class="font-semibold text-sm ${isCurrentUser ? 'text-blue-700' : 'text-gray-700'}">${message.sender}</span>
-                    <span class="text-xs text-gray-500 mx-2">${message.timestamp}</span>
+                    <span class="text-xs text-gray-500 mx-2">${message.timestamp || 'الآن'}</span>
                     <span class="text-xs ${isCurrentUser ? 'text-blue-600' : 'text-purple-600'}">
                         <i class="fas fa-microphone ml-1"></i>صوتي
                     </span>
@@ -254,7 +257,7 @@ function addMessageToChat(message, animate = true) {
                             </div>
                             <div>
                                 <div class="font-medium text-gray-800">رسالة صوتية</div>
-                                <div class="text-xs text-gray-600">${durationText} · ${formatFileSize(message.voice_size)}</div>
+                                <div class="text-xs text-gray-600">${durationText} · ${formatFileSize(message.voice_size || 0)}</div>
                             </div>
                         </div>
                         <button onclick="playVoiceMessage('${voiceUrl}', this)" class="play-voice-btn bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white p-2 rounded-full transition-all transform hover:scale-110">
@@ -274,7 +277,7 @@ function addMessageToChat(message, animate = true) {
                                 <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full w-0" id="progress-${message.id}"></div>
                             </div>
                             <span class="text-xs text-gray-500" id="time-${message.id}">${durationText}</span>
-                            <a href="${voiceUrl}" download="${message.voice_originalname}" class="text-gray-600 hover:text-green-600" title="تحميل">
+                            <a href="${voiceUrl}" download="${message.voice_originalname || 'voice_message'}" class="text-gray-600 hover:text-green-600" title="تحميل">
                                 <i class="fas fa-download"></i>
                             </a>
                         </div>
@@ -295,10 +298,10 @@ function addMessageToChat(message, animate = true) {
                         ${message.sender.charAt(0)}
                     </div>
                     <span class="font-semibold text-sm ${isCurrentUser ? 'text-blue-700' : 'text-gray-700'}">${message.sender}</span>
-                    <span class="text-xs text-gray-500 mx-2">${message.timestamp}</span>
+                    <span class="text-xs text-gray-500 mx-2">${message.timestamp || 'الآن'}</span>
                 </div>
                 <div class="${bgColorClass} p-3 rounded-2xl max-w-xs lg:max-w-md ${isCurrentUser ? 'rounded-tr-none' : 'rounded-tl-none'} border">
-                    <p class="text-gray-800 emoji-support">${message.message}</p>
+                    <p class="text-gray-800 emoji-support">${message.message || ''}</p>
                 </div>
             </div>
         `;
@@ -307,8 +310,10 @@ function addMessageToChat(message, animate = true) {
     chatMessages.appendChild(messageElement);
 
     // تهيئة مشغلات الصوت
-    if (message.has_voice) {
-        initAudioPlayer(`audio-${message.id}`);
+    if (message.has_voice && message.voice_filename) {
+        setTimeout(() => {
+            initAudioPlayer(`audio-${message.id}`);
+        }, 100);
     }
 }
 
@@ -331,6 +336,8 @@ function playVoiceMessage(url, button) {
 // تبديل التشغيل/الإيقاف للصوت
 function togglePlayPause(audioId, button) {
     const audio = document.getElementById(audioId);
+    if (!audio) return;
+    
     if (audio.paused) {
         audio.play();
         button.innerHTML = '<i class="fas fa-pause-circle text-lg"></i>';
@@ -345,6 +352,8 @@ function initAudioPlayer(audioId) {
     const audio = document.getElementById(audioId);
     const progress = document.getElementById(`progress-${audioId.replace('audio-', '')}`);
     const timeDisplay = document.getElementById(`time-${audioId.replace('audio-', '')}`);
+
+    if (!audio) return;
 
     audio.addEventListener('timeupdate', function () {
         if (progress && timeDisplay) {
@@ -361,7 +370,7 @@ function initAudioPlayer(audioId) {
         if (progress) {
             progress.style.width = '0%';
         }
-        const playBtn = audio.parentElement.querySelector('.fa-play-circle');
+        const playBtn = audio.parentElement?.querySelector('.fa-play-circle');
         if (playBtn) {
             playBtn.classList.remove('fa-pause-circle');
             playBtn.classList.add('fa-play-circle');
@@ -386,7 +395,7 @@ function formatDuration(seconds) {
 
 // تنسيق حجم الملف
 function formatFileSize(bytes) {
-    if (bytes === 0) return '0 ب';
+    if (!bytes || bytes === 0) return '0 ب';
     const k = 1024;
     const sizes = ['ب', 'ك.ب', 'م.ب', 'ج.ب'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -418,6 +427,7 @@ function selectUser(username) {
     // تسجيل دخول المستخدم عبر السيرفر
     if (socket && isConnected) {
         socket.emit('user_login', username);
+        console.log('User logged in:', username);
     }
     
     // إغلاق نافذة الترحيب
@@ -459,8 +469,6 @@ function enableMessageInput() {
     const sendBtn = document.getElementById('send-btn');
     const emojiToggle = document.getElementById('emoji-toggle');
     const voiceRecordBtn = document.getElementById('voice-record-btn');
-    const emojiCategories = document.querySelectorAll('.emoji-category');
-    const formatBtns = document.querySelectorAll('[onclick^="formatText"]');
 
     if (messageInput) {
         messageInput.disabled = false;
@@ -482,16 +490,6 @@ function enableMessageInput() {
         voiceRecordBtn.disabled = false;
         voiceRecordBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     }
-    
-    // تمكين أزرار الإيموجي
-    emojiCategories.forEach(btn => {
-        btn.disabled = false;
-    });
-    
-    // تمكين أزرار التنسيق
-    formatBtns.forEach(btn => {
-        btn.disabled = false;
-    });
 }
 
 // بدء التسجيل الصوتي
@@ -529,7 +527,9 @@ async function startVoiceRecording() {
             stopRecordingTimer();
             
             // عرض معاينة التسجيل
-            showRecordingPreview(audioBlob);
+            if (audioBlob.size > 0) {
+                showRecordingPreview(audioBlob);
+            }
             isRecording = false;
         };
 
@@ -702,6 +702,8 @@ async function sendVoiceMessage(button) {
         const result = await response.json();
 
         if (result.success) {
+            console.log('Voice uploaded successfully:', result);
+            
             // إرسال الرسالة الصوتية عبر Socket.IO
             socket.emit('send_voice_message', {
                 sender: selectedUser,
@@ -721,7 +723,7 @@ async function sendVoiceMessage(button) {
         }
     } catch (err) {
         console.error('Error sending voice message:', err);
-        showError('فشل في إرسال الرسالة الصوتية');
+        showError('فشل في إرسال الرسالة الصوتية: ' + err.message);
         button.disabled = false;
         button.innerHTML = '<i class="fas fa-paper-plane ml-2"></i>إرسال';
     }
@@ -730,10 +732,12 @@ async function sendVoiceMessage(button) {
 // إلغاء التسجيل
 function cancelRecording(button) {
     const modal = button.closest('.fixed');
-    if (modal.audioUrl) {
+    if (modal && modal.audioUrl) {
         URL.revokeObjectURL(modal.audioUrl);
     }
-    modal.remove();
+    if (modal) {
+        modal.remove();
+    }
 }
 
 // إرسال رسالة نصية
@@ -744,9 +748,13 @@ function sendMessage() {
     if (!message || !selectedUser || !socket || !isConnected) {
         if (!selectedUser) {
             showError('يجب اختيار مستخدم أولاً');
+        } else if (!message) {
+            showError('الرسالة لا يمكن أن تكون فارغة');
         }
         return;
     }
+
+    console.log('Sending message:', { sender: selectedUser, message });
 
     // إرسال الرسالة عبر Socket.IO
     socket.emit('send_message', {
@@ -757,12 +765,14 @@ function sendMessage() {
     // مسح حقل الإدخال
     if (messageInput) {
         messageInput.value = '';
-        document.getElementById('char-count').textContent = '0';
+        const charCount = document.getElementById('char-count');
+        if (charCount) {
+            charCount.textContent = '0';
+        }
         
         // إعادة ضبط ارتفاع حقل الإدخال
         messageInput.style.height = 'auto';
-        messageInput.style.height = (messageInput.scrollHeight) + 'px';
-
+        
         // إعادة التركيز على حقل الإدخال
         messageInput.focus();
     }
@@ -772,7 +782,9 @@ function sendMessage() {
 function scrollToBottom() {
     const chatMessages = document.getElementById('chat-messages');
     if (chatMessages) {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        setTimeout(() => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 100);
     }
 }
 
@@ -822,9 +834,13 @@ function playNotificationSound() {
     const icon = soundBtn.querySelector('i');
 
     if (icon && icon.classList.contains('fa-volume-up')) {
-        const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ');
-        audio.volume = 0.3;
-        audio.play().catch(() => { });
+        try {
+            const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ');
+            audio.volume = 0.3;
+            audio.play().catch(() => { });
+        } catch (err) {
+            console.error('Error playing notification sound:', err);
+        }
     }
 }
 
@@ -951,17 +967,6 @@ function setupEmojiPicker() {
             return;
         }
         emojiPicker.classList.toggle('hidden');
-
-        // إذا تم فتح قائمة الإيموجي، أضف حدث لإغلاقها عند الضغط على Esc
-        if (!emojiPicker.classList.contains('hidden')) {
-            const handleEscKey = (event) => {
-                if (event.key === 'Escape') {
-                    emojiPicker.classList.add('hidden');
-                    document.removeEventListener('keydown', handleEscKey);
-                }
-            };
-            document.addEventListener('keydown', handleEscKey);
-        }
     });
 
     // إغلاق قائمة الإيموجي
@@ -1012,28 +1017,6 @@ function setupVoiceRecording() {
             showError('تم إلغاء التسجيل');
         });
     }
-
-    // دعم الضغط الطويل للتسجيل (للجوال)
-    let pressTimer;
-    voiceRecordBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (!selectedUser) {
-            showError('يجب اختيار مستخدم أولاً');
-            return;
-        }
-        pressTimer = setTimeout(() => {
-            startVoiceRecording();
-        }, 500);
-    });
-
-    voiceRecordBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        clearTimeout(pressTimer);
-    });
-
-    voiceRecordBtn.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-    });
 }
 
 // تهيئة أحداث الإدخال
@@ -1070,18 +1053,6 @@ function setupInputEvents() {
             this.style.height = (this.scrollHeight) + 'px';
         }
     });
-
-    // السماح باستخدام Ctrl+Enter لسطر جديد
-    messageInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && e.ctrlKey) {
-            // السماح بإدخال سطر جديد
-            const start = messageInput.selectionStart;
-            const end = messageInput.selectionEnd;
-            messageInput.value = messageInput.value.substring(0, start) + '\n' + messageInput.value.substring(end);
-            messageInput.selectionStart = messageInput.selectionEnd = start + 1;
-            e.preventDefault();
-        }
-    });
 }
 
 // تحديث الوقت
@@ -1099,6 +1070,7 @@ function updateTime() {
 
 // تهيئة التطبيق
 function initializeApp() {
+    console.log('Initializing chat application...');
     connectToServer();
 
     // تهيئة الإيموجي
@@ -1114,22 +1086,6 @@ function initializeApp() {
     // إعداد تحديث الوقت
     updateTime();
     setInterval(updateTime, 60000);
-    
-    // تمكين زر العودة للأعلى
-    const scrollToTopBtn = document.getElementById('scroll-to-top');
-    if (scrollToTopBtn) {
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                scrollToTopBtn.classList.remove('hidden');
-            } else {
-                scrollToTopBtn.classList.add('hidden');
-            }
-        });
-        
-        scrollToTopBtn.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
     
     console.log('Chat application initialized successfully');
 }
