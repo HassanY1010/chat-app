@@ -3,19 +3,17 @@ const path = require('path');
 
 class Database {
     constructor() {
-        // استخدام قاعدة بيانات في الذاكرة مع حفظ دائم
-      // تعديل مسار قاعدة البيانات ليعمل على Render داخل مجلد /data
-const dbPath = path.join(process.cwd(), 'data', 'chat.db');
+        // تعديل مسار قاعدة البيانات ليعمل على Render داخل مجلد /data
+        const dbPath = path.join(process.cwd(), 'data', 'chat.db');
 
-this.db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Error opening database:', err);
-    } else {
-        console.log(`Connected to SQLite database at: ${dbPath}`);
-        this.initializeDatabase();
-    }
-});
-
+        this.db = new sqlite3.Database(dbPath, (err) => {
+            if (err) {
+                console.error('Error opening database:', err);
+            } else {
+                console.log(`Connected to SQLite database at: ${dbPath}`);
+                this.initializeDatabase();
+            }
+        });
     }
 
     initializeDatabase() {
@@ -54,16 +52,37 @@ this.db = new sqlite3.Database(dbPath, (err) => {
                     console.error('Error creating users table:', err);
                     return;
                 }
-                
-                // 2. حذف جميع المستخدمين الحاليين
+
+                // 2. تحقق من وجود العمود has_voice
+                this.db.all('PRAGMA table_info(messages);', (err, columns) => {
+                    if (err) {
+                        console.error('Error checking table structure:', err);
+                    } else {
+                        const hasVoiceColumn = columns.some(col => col.name === 'has_voice');
+                        if (!hasVoiceColumn) {
+                            const addHasVoiceColumn = `
+                                ALTER TABLE messages ADD COLUMN has_voice INTEGER DEFAULT 0;
+                            `;
+                            this.db.run(addHasVoiceColumn, (err) => {
+                                if (err) {
+                                    console.error('Error adding has_voice column:', err);
+                                } else {
+                                    console.log('Column has_voice added successfully.');
+                                }
+                            });
+                        }
+                    }
+                });
+
+                // 3. حذف جميع المستخدمين الحاليين
                 this.db.run('DELETE FROM users', (err) => {
                     if (err) {
                         console.error('Error deleting old users:', err);
                     } else {
                         console.log('All old users deleted');
                     }
-                    
-                    // 3. إضافة المستخدمين الجدد
+
+                    // 4. إضافة المستخدمين الجدد
                     this.initializeDefaultUsers();
                 });
             });
