@@ -44,42 +44,27 @@ class Database {
         this.db.serialize(() => {
             // 1. إنشاء الجداول أولاً
             this.db.run(createMessagesTable, (err) => {
-                if (err) console.error('Error creating messages table:', err);
-                else console.log('✅ Messages table created/checked');
+                if (err) {
+                    console.error('❌ Error creating messages table:', err);
+                } else {
+                    console.log('✅ Messages table created/checked');
+                    
+                    // 2. التحقق من وإضافة الأعمدة المفقودة
+                    this.checkAndAddColumns();
+                }
             });
 
             this.db.run(createUsersTable, (err) => {
                 if (err) {
-                    console.error('Error creating users table:', err);
+                    console.error('❌ Error creating users table:', err);
                     return;
                 }
                 console.log('✅ Users table created/checked');
-
-                // 2. تحقق من وجود العمود has_voice
-                this.db.all('PRAGMA table_info(messages);', (err, columns) => {
-                    if (err) {
-                        console.error('Error checking table structure:', err);
-                    } else {
-                        const hasVoiceColumn = columns.some(col => col.name === 'has_voice');
-                        if (!hasVoiceColumn) {
-                            const addHasVoiceColumn = `
-                                ALTER TABLE messages ADD COLUMN has_voice INTEGER DEFAULT 0;
-                            `;
-                            this.db.run(addHasVoiceColumn, (err) => {
-                                if (err) {
-                                    console.error('Error adding has_voice column:', err);
-                                } else {
-                                    console.log('✅ Column has_voice added successfully.');
-                                }
-                            });
-                        }
-                    }
-                });
-
+                
                 // 3. حذف جميع المستخدمين الحاليين
                 this.db.run('DELETE FROM users', (err) => {
                     if (err) {
-                        console.error('Error deleting old users:', err);
+                        console.error('❌ Error deleting old users:', err);
                     } else {
                         console.log('✅ All old users deleted');
 
@@ -88,6 +73,56 @@ class Database {
                     }
                 });
             });
+        });
+    }
+
+    // التحقق من وإضافة الأعمدة المفقودة
+    checkAndAddColumns() {
+        console.log('🔍 Checking for missing columns...');
+        
+        const columnsToCheck = [
+            { name: 'has_voice', type: 'INTEGER DEFAULT 0' },
+            { name: 'voice_filename', type: 'TEXT' },
+            { name: 'voice_originalname', type: 'TEXT' },
+            { name: 'voice_size', type: 'INTEGER' },
+            { name: 'voice_duration', type: 'INTEGER' }
+        ];
+
+        this.db.all('PRAGMA table_info(messages);', (err, columns) => {
+            if (err) {
+                console.error('❌ Error checking table structure:', err);
+                return;
+            }
+
+            const existingColumns = columns.map(col => col.name);
+            console.log('📋 Existing columns:', existingColumns);
+
+            let columnsAdded = 0;
+            
+            columnsToCheck.forEach(column => {
+                if (!existingColumns.includes(column.name)) {
+                    const addColumnSQL = `ALTER TABLE messages ADD COLUMN ${column.name} ${column.type};`;
+                    
+                    this.db.run(addColumnSQL, (err) => {
+                        if (err) {
+                            console.error(`❌ Error adding column ${column.name}:`, err);
+                        } else {
+                            console.log(`✅ Column ${column.name} added successfully`);
+                            columnsAdded++;
+                            
+                            if (columnsAdded === columnsToCheck.length) {
+                                console.log('🎉 All missing columns have been added');
+                            }
+                        }
+                    });
+                } else {
+                    console.log(`✅ Column ${column.name} already exists`);
+                }
+            });
+            
+            if (columnsToCheck.every(col => existingColumns.includes(col.name))) {
+                console.log('✅ All required columns are present');
+            }
         });
     }
 
@@ -107,13 +142,14 @@ class Database {
                 [user.username, user.status],
                 (err) => {
                     if (err) {
-                        console.error('Error inserting user:', err);
+                        console.error('❌ Error inserting user:', err);
                     } else {
                         insertedCount++;
-                        console.log(`✅ User added: ${user.username}`);
+                        console.log(`✅ User added: ${user.username} (${insertedCount}/${totalUsers})`);
                         
                         if (insertedCount === totalUsers) {
-                            console.log('✅ All default users initialized successfully');
+                            console.log('🎉 All default users initialized successfully');
+                            this.testDatabaseConnection();
                         }
                     }
                 }
@@ -121,21 +157,52 @@ class Database {
         });
     }
 
+    // اختبار اتصال قاعدة البيانات
+    testDatabaseConnection() {
+        console.log('🔧 Testing database connection...');
+        
+        // اختبار استعلام بسيط
+        this.db.get('SELECT COUNT(*) as count FROM messages', (err, row) => {
+            if (err) {
+                console.error('❌ Database test failed:', err);
+            } else {
+                console.log(`✅ Database test passed. Total messages: ${row.count}`);
+            }
+        });
+        
+        // اختبار هيكل الجدول
+        this.db.all('PRAGMA table_info(messages)', (err, columns) => {
+            if (err) {
+                console.error('❌ Failed to get table info:', err);
+            } else {
+                console.log('📊 Table structure:');
+                columns.forEach(col => {
+                    console.log(`   - ${col.name} (${col.type})`);
+                });
+            }
+        });
+    }
+
     // حفظ رسالة جديدة
     saveMessage(sender, message, hasVoice = false) {
         return new Promise((resolve, reject) => {
-            this.db.run(
-                'INSERT INTO messages (sender, message, has_voice) VALUES (?, ?, ?)',
-                [sender, message, hasVoice ? 1 : 0],
-                function(err) {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        console.log(`✅ Message saved: ${sender} - ${message.substring(0, 50)}... (ID: ${this.lastID})`);
-                        resolve(this.lastID);
-                    }
+            const sql = hasVoice 
+                ? `INSERT INTO messages (sender, message, has_voice) VALUES (?, ?, ?)`
+                : `INSERT INTO messages (sender, message) VALUES (?, ?)`;
+            
+            const params = hasVoice 
+                ? [sender, message, hasVoice ? 1 : 0]
+                : [sender, message];
+
+            this.db.run(sql, params, function(err) {
+                if (err) {
+                    console.error('❌ Error saving message:', err);
+                    reject(err);
+                } else {
+                    console.log(`✅ Message saved: ${sender} - "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}" (ID: ${this.lastID})`);
+                    resolve(this.lastID);
                 }
-            );
+            });
         });
     }
 
@@ -152,11 +219,12 @@ class Database {
                     1,
                     voiceFile.filename,
                     voiceFile.originalname,
-                    voiceFile.size,
-                    duration
+                    voiceFile.size || 0,
+                    duration || 0
                 ],
                 function(err) {
                     if (err) {
+                        console.error('❌ Error saving voice message:', err);
                         reject(err);
                     } else {
                         console.log(`✅ Voice message saved: ${sender} - ${voiceFile.filename} (ID: ${this.lastID})`);
@@ -179,6 +247,7 @@ class Database {
                  ORDER BY timestamp ASC`,
                 (err, rows) => {
                     if (err) {
+                        console.error('❌ Error fetching all messages:', err);
                         reject(err);
                     } else {
                         console.log(`✅ Fetched ${rows.length} messages`);
@@ -197,6 +266,7 @@ class Database {
                 [status, username],
                 function(err) {
                     if (err) {
+                        console.error('❌ Error updating user status:', err);
                         reject(err);
                     } else {
                         console.log(`✅ User status updated: ${username} -> ${status}`);
@@ -214,6 +284,7 @@ class Database {
                 'SELECT username, status, datetime(last_seen, "localtime") as last_seen FROM users ORDER BY username ASC',
                 (err, rows) => {
                     if (err) {
+                        console.error('❌ Error fetching users:', err);
                         reject(err);
                     } else {
                         console.log(`✅ Fetched ${rows.length} users`);
@@ -224,29 +295,71 @@ class Database {
         });
     }
 
-    // جلب آخر 50 رسالة
+    // جلب آخر 50 رسالة (مع التعامل مع الأعمدة المفقودة)
     getRecentMessages() {
         return new Promise((resolve, reject) => {
-            this.db.all(
-                `SELECT id, sender, message, 
-                        datetime(timestamp, "localtime") as timestamp,
-                        has_voice, voice_filename, voice_originalname, 
-                        voice_size, voice_duration
-                 FROM messages 
-                 ORDER BY timestamp DESC 
-                 LIMIT 50`,
-                (err, rows) => {
+            // أولاً، تحقق من هيكل الجدول
+            this.db.all('PRAGMA table_info(messages)', (err, columns) => {
+                if (err) {
+                    console.error('❌ Error getting table info:', err);
+                    reject(err);
+                    return;
+                }
+
+                const existingColumns = columns.map(col => col.name);
+                
+                // بناء الاستعلام بناءً على الأعمدة الموجودة
+                const selectColumns = [
+                    'id', 'sender', 'message',
+                    'datetime(timestamp, "localtime") as timestamp',
+                    'has_voice'
+                ];
+
+                // إضافة الأعمدة الاختيارية إذا كانت موجودة
+                if (existingColumns.includes('voice_filename')) {
+                    selectColumns.push('voice_filename');
+                }
+                if (existingColumns.includes('voice_originalname')) {
+                    selectColumns.push('voice_originalname');
+                }
+                if (existingColumns.includes('voice_size')) {
+                    selectColumns.push('voice_size');
+                }
+                if (existingColumns.includes('voice_duration')) {
+                    selectColumns.push('voice_duration');
+                }
+
+                const sql = `SELECT ${selectColumns.join(', ')}
+                             FROM messages 
+                             ORDER BY timestamp DESC 
+                             LIMIT 50`;
+
+                console.log('📝 Executing query:', sql.substring(0, 100) + '...');
+
+                this.db.all(sql, (err, rows) => {
                     if (err) {
+                        console.error('❌ Error fetching recent messages:', err);
                         reject(err);
                     } else {
                         console.log(`✅ Fetched ${rows.length} recent messages`);
-                        resolve(rows.reverse()); // لإعادة الترتيب من الأقدم للأحدث
+                        
+                        // تأكد من وجود القيم الافتراضية للأعمدة المفقودة
+                        const completeRows = rows.map(row => ({
+                            ...row,
+                            voice_filename: row.voice_filename || null,
+                            voice_originalname: row.voice_originalname || null,
+                            voice_size: row.voice_size || 0,
+                            voice_duration: row.voice_duration || 0
+                        }));
+                        
+                        resolve(completeRows.reverse()); // لإعادة الترتيب من الأقدم للأحدث
                     }
-                }
-            );
+                });
+            });
         });
     }
 
+    // إغلاق الاتصال
     close() {
         this.db.close();
         console.log('✅ Database connection closed');
