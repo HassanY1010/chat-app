@@ -10,7 +10,7 @@ class Database {
             if (err) {
                 console.error('Error opening database:', err);
             } else {
-                console.log(`Connected to SQLite database at: ${dbPath}`);
+                console.log(`✅ Connected to SQLite database at: ${dbPath}`);
                 this.initializeDatabase();
             }
         });
@@ -45,6 +45,7 @@ class Database {
             // 1. إنشاء الجداول أولاً
             this.db.run(createMessagesTable, (err) => {
                 if (err) console.error('Error creating messages table:', err);
+                else console.log('✅ Messages table created/checked');
             });
 
             this.db.run(createUsersTable, (err) => {
@@ -52,6 +53,7 @@ class Database {
                     console.error('Error creating users table:', err);
                     return;
                 }
+                console.log('✅ Users table created/checked');
 
                 // 2. تحقق من وجود العمود has_voice
                 this.db.all('PRAGMA table_info(messages);', (err, columns) => {
@@ -67,7 +69,7 @@ class Database {
                                 if (err) {
                                     console.error('Error adding has_voice column:', err);
                                 } else {
-                                    console.log('Column has_voice added successfully.');
+                                    console.log('✅ Column has_voice added successfully.');
                                 }
                             });
                         }
@@ -79,11 +81,11 @@ class Database {
                     if (err) {
                         console.error('Error deleting old users:', err);
                     } else {
-                        console.log('All old users deleted');
-                    }
+                        console.log('✅ All old users deleted');
 
-                    // 4. إضافة المستخدمين الجدد
-                    this.initializeDefaultUsers();
+                        // 4. إضافة المستخدمين الجدد
+                        this.initializeDefaultUsers();
+                    }
                 });
             });
         });
@@ -91,20 +93,28 @@ class Database {
 
     initializeDefaultUsers() {
         const defaultUsers = [
-            { username: 'حسن', status: 'offline' },
-            { username: 'حاتم', status: 'offline' },
-            { username: 'مشاري', status: 'offline' }
+            { username: 'حسن', status: 'online' },
+            { username: 'حاتم', status: 'online' },
+            { username: 'مشاري', status: 'online' }
         ];
+
+        let insertedCount = 0;
+        const totalUsers = defaultUsers.length;
 
         defaultUsers.forEach(user => {
             this.db.run(
-                'INSERT INTO users (username, status) VALUES (?, ?)',
+                'INSERT OR REPLACE INTO users (username, status) VALUES (?, ?)',
                 [user.username, user.status],
                 (err) => {
                     if (err) {
                         console.error('Error inserting user:', err);
                     } else {
-                        console.log(`User added: ${user.username}`);
+                        insertedCount++;
+                        console.log(`✅ User added: ${user.username}`);
+                        
+                        if (insertedCount === totalUsers) {
+                            console.log('✅ All default users initialized successfully');
+                        }
                     }
                 }
             );
@@ -121,6 +131,7 @@ class Database {
                     if (err) {
                         reject(err);
                     } else {
+                        console.log(`✅ Message saved: ${sender} - ${message.substring(0, 50)}... (ID: ${this.lastID})`);
                         resolve(this.lastID);
                     }
                 }
@@ -148,6 +159,7 @@ class Database {
                     if (err) {
                         reject(err);
                     } else {
+                        console.log(`✅ Voice message saved: ${sender} - ${voiceFile.filename} (ID: ${this.lastID})`);
                         resolve(this.lastID);
                     }
                 }
@@ -169,6 +181,7 @@ class Database {
                     if (err) {
                         reject(err);
                     } else {
+                        console.log(`✅ Fetched ${rows.length} messages`);
                         resolve(rows);
                     }
                 }
@@ -182,10 +195,11 @@ class Database {
             this.db.run(
                 'UPDATE users SET status = ?, last_seen = CURRENT_TIMESTAMP WHERE username = ?',
                 [status, username],
-                (err) => {
+                function(err) {
                     if (err) {
                         reject(err);
                     } else {
+                        console.log(`✅ User status updated: ${username} -> ${status}`);
                         resolve(true);
                     }
                 }
@@ -202,6 +216,7 @@ class Database {
                     if (err) {
                         reject(err);
                     } else {
+                        console.log(`✅ Fetched ${rows.length} users`);
                         resolve(rows);
                     }
                 }
@@ -224,6 +239,7 @@ class Database {
                     if (err) {
                         reject(err);
                     } else {
+                        console.log(`✅ Fetched ${rows.length} recent messages`);
                         resolve(rows.reverse()); // لإعادة الترتيب من الأقدم للأحدث
                     }
                 }
@@ -233,6 +249,7 @@ class Database {
 
     close() {
         this.db.close();
+        console.log('✅ Database connection closed');
     }
 }
 
