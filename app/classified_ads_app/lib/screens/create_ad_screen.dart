@@ -1224,6 +1224,25 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                             const SizedBox(height: 16),
                             SwitchListTile.adaptive(
                               title: const Text(
+                                'قابل للتفاوض',
+                                style: TextStyle(fontFamily: 'NotoSansArabic'),
+                              ),
+                              subtitle: const Text(
+                                'تفعيل زر قابل للتفاوض في الإعلان',
+                                style: TextStyle(fontFamily: 'NotoSansArabic', fontSize: 12),
+                              ),
+                              value: _isNegotiable,
+                              onChanged: (value) {
+                                setState(() {
+                                  _isNegotiable = value;
+                                });
+                              },
+                              activeTrackColor: const Color(0xFF10B981),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            const Divider(),
+                            SwitchListTile.adaptive(
+                              title: const Text(
                                 'تفعيل الاتصال المباشر',
                                 style: TextStyle(fontFamily: 'NotoSansArabic'),
                               ),
