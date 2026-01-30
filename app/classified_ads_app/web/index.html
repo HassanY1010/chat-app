@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="description" content="Classified Ads Flutter App">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="classified_ads_app">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <title>classified_ads_app</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- منع Flutter Web من تحميل أي خطوط خارجية -->
+  <style>
+    /* تعطيل Roboto الافتراضي */
+    @font-face {
+      font-family: 'Roboto';
+      src: local('Arial');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* تعطيل Noto Sans Arabic من Google Fonts */
+    @font-face {
+      font-family: 'Noto Sans Arabic';
+      src: local('Noto Sans Arabic'), local('Arial');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* تعطيل Noto Color Emoji (سبب الرسائل المزعجة) */
+    @font-face {
+      font-family: 'Noto Color Emoji';
+      src: local('Segoe UI Emoji'), local('Apple Color Emoji');
+    }
+
+    body {
+      margin: 0;
+      font-family: 'NotoSansArabic', 'Noto Sans Arabic', Arial, sans-serif;
+      direction: rtl;
+    }
+  </style>
+</head>
+
+<body>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+
+</html>
