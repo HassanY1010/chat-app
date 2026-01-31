@@ -43,7 +43,7 @@ class AdCard extends StatelessWidget {
                 child: Hero(
                   tag: 'ad-image-${ad['id']}',
                   child: CachedNetworkImage(
-                    imageUrl: ad['main_image']?['image_url'] ?? '',
+                    imageUrl: ad['main_image']?['thumbnail_url'] ?? ad['main_image']?['image_url'] ?? '',
                     fit: BoxFit.cover,
                     memCacheWidth: 800, // Optimized for memory
                     placeholder: (context, url) => Shimmer.fromColors(

@@ -118,21 +118,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final user = context.watch<AuthProvider>().user;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).cardColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'تعديل الملف الشخصي',
           style: TextStyle(
-            color: Color(0xFF1E293B),
+            color: Theme.of(context).textTheme.titleLarge?.color,
             fontFamily: 'Cairo',
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1E293B)),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -211,13 +211,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'الاسم',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Cairo',
-                      color: Color(0xFF64748B),
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -225,7 +225,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     controller: _nameController,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
                       prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFF94A3B8)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -257,13 +257,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'رقم الهاتف',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Cairo',
-                      color: Color(0xFF64748B),
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -272,7 +272,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
                       prefixIcon: const Icon(Icons.phone_rounded, color: Color(0xFF94A3B8)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),

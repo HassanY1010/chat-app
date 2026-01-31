@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:cached_network_image/cached_network_image.dart';
@@ -243,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                                 decoration: AppTheme.inputDecoration(
                                   hintText: 'اكتب رأيك هنا (اختياري)...',
                                 ).copyWith(
-                                  fillColor: const Color(0xFFF8FAFF),
+                                  fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : const Color(0xFFF8FAFF),
                                 ),
                                 style: const TextStyle(fontFamily: 'NotoSansArabic'),
                               ),
@@ -698,33 +699,20 @@ Widget _buildProfileHeader() {
                             ),
                           ),
                           errorWidget: (context, url, error) => Center(
-                            child: Text(
-                              user.name != null && user.name.isNotEmpty ? user.name[0] : 'U',
-                              style: TextStyle(
-                                fontSize: 48,
-                                fontWeight: FontWeight.w900,
-                                color: const Color(0xFF10B981),
-                                fontFamily: 'Cairo',
-                              ),
+                            child: Image.asset(
+                              'assets/play_store_assets/logo_final.png',
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.contain,
                             ),
                           ),
                         )
                       : Center(
-                          child: Text(
-                            user?.name != null && user!.name.isNotEmpty ? user.name[0] : 'U',
-                            style: TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.w900,
-                              color: const Color(0xFF10B981),
-                              fontFamily: 'Cairo',
-                              shadows: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
+                          child: Image.asset(
+                            'assets/play_store_assets/logo_final.png',
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.contain,
                           ),
                         ),
                 ),
@@ -1055,6 +1043,11 @@ Widget _buildGeneralTab() {
                     iconPath: AppIcons.camera,
                     label: 'الباركود',
                     color: const Color(0xFF8B5CF6),
+                  ),
+                  _buildQuickAction(
+                    iconPath: AppIcons.money,
+                    label: 'حسابات بنكية',
+                    color: const Color(0xFFF59E0B),
                   ),
                 ],
               ),
@@ -2223,6 +2216,8 @@ Widget _buildQuickAction({
           Navigator.pushNamed(context, '/delete-ads');
         } else if (label == 'الباركود') {
           _showQRCode();
+        } else if (label == 'حسابات بنكية') {
+          _showBankAccounts();
         }
       },
       borderRadius: BorderRadius.circular(20),
@@ -2882,6 +2877,202 @@ Widget build(BuildContext context) {
     ),
   );
 }
+
+  void _showBankAccounts() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'BankAccounts',
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
+      transitionBuilder: (context, anim1, anim2, child) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
+          child: FadeTransition(
+            opacity: anim1,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              backgroundColor: Theme.of(context).cardColor,
+              contentPadding: EdgeInsets.zero,
+              content: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: SvgPicture.asset(
+                              AppIcons.money,
+                              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                              width: 40,
+                              height: 40,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'الحسابات البنكية',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              fontFamily: 'Cairo',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          _buildBankAccountItem(
+                            'حساب شركة المريسي',
+                            '225390',
+                            'محسن سالم محسن البابكري',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildBankAccountItem(
+                            'حساب الكريمي',
+                            '24509319',
+                            'محسن سالم محسن البابكري',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildBankAccountItem(
+                            'الحوالات الموحدة',
+                            '782305677',
+                            'محسن سالم محسن البابكري',
+                            isPhone: true,
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFF59E0B),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: const Text(
+                                'إغلاق',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Cairo',
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBankAccountItem(String title, String accountNo, String name, {bool isPhone = false}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark 
+            ? Colors.white.withOpacity(0.05) 
+            : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFF59E0B),
+                  fontFamily: 'Cairo',
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: accountNo));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('تم نسخ ${isPhone ? 'رقم الهاتف' : 'رقم الحساب'} بنجاح'),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF59E0B).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.copy_rounded,
+                    size: 18,
+                    color: Color(0xFFF59E0B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            accountNo,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+              fontFamily: 'NotoSansArabic',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
 Future<void> _showQRCode() async {
     final authProvider = context.read<AuthProvider>();

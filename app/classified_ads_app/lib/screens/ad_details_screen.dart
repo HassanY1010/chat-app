@@ -39,6 +39,11 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with SingleTickerProv
   bool _isLiked = false;
   int _likeCount = 0;
   final TextEditingController _commentController = TextEditingController();
+  
+  Map<String, dynamic>? _fullAd;
+  bool _isLoadingDetails = false;
+
+  Map<String, dynamic> get ad => _fullAd ?? widget.ad;
 
   @override
   void initState() {
@@ -71,6 +76,35 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with SingleTickerProv
     
     _likeCount = widget.ad['likes_count'] ?? 0;
     _isLiked = widget.ad['is_liked'] ?? false;
+    
+    _loadFullDetails();
+  }
+
+  Future<void> _loadFullDetails() async {
+    setState(() {
+      _isLoadingDetails = true;
+    });
+
+    try {
+      final adProvider = context.read<AdProvider>();
+      final fullAd = await adProvider.fetchAdById(widget.ad['id'].toString());
+      
+      if (mounted) {
+        setState(() {
+          _fullAd = fullAd;
+          _likeCount = fullAd['likes_count'] ?? _likeCount;
+          _isLiked = fullAd['is_liked'] ?? _isLiked;
+          _isLoadingDetails = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading full ad details: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingDetails = false;
+        });
+      }
+    }
   }
 
   @override
@@ -109,11 +143,11 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with SingleTickerProv
   }
 
   String _getCategoryName() {
-    if (widget.ad['category'] != null && widget.ad['category']['name'] != null) {
-      return widget.ad['category']['name'];
+    if (ad['category'] != null && ad['category']['name'] != null) {
+      return ad['category']['name'];
     }
     
-    final categoryId = widget.ad['category_id']?.toString();
+    final categoryId = ad['category_id']?.toString();
     if (categoryId != null) {
       // Use read instead of watch/select inside a method called by build (indirectly) or just read
       // Since this is called in build via _buildDetailCard, context.read is safe if not reacting.
@@ -157,10 +191,10 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with SingleTickerProv
   }
 
   Future<void> _shareAd() async {
-    final adId = widget.ad['id'].toString();
+    final adId = ad['id'].toString();
     final adUrl = '${AppConstants.assetBaseUrl}/ad/$adId';
-    final adTitle = widget.ad['title'] ?? 'إعلان';
-    final adPrice = '${widget.ad['price'] ?? '0'} ${_getCurrencySymbol(widget.ad['currency'])}';
+    final adTitle = ad['title'] ?? 'إعلان';
+    final adPrice = '${ad['price'] ?? '0'} ${_getCurrencySymbol(ad['currency'])}';
     
     showModalBottomSheet(
       context: context,
@@ -287,7 +321,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with SingleTickerProv
         return;
       }
 
-      final adId = widget.ad['id'].toString();
+      final adId = ad['id'].toString();
       final adProvider = context.read<AdProvider>();
       
       setState(() {
@@ -974,12 +1008,12 @@ if (confirm == true) {
 
   List<Widget> _getImageWidgets() {
     final images = [];
-    if (widget.ad['main_image'] != null) {
-      images.add(widget.ad['main_image']);
+    if (ad['main_image'] != null) {
+      images.add(ad['main_image']);
     }
     
-    if (widget.ad['images'] != null && widget.ad['images'] is List) {
-      images.addAll(widget.ad['images']);
+    if (ad['images'] != null && ad['images'] is List) {
+      images.addAll(ad['images']);
     }
     
     if (images.isEmpty) {
@@ -1327,21 +1361,28 @@ if (confirm == true) {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: List.generate(images.length, (index) {
+                            final isActive = _currentImageIndex == index;
                             return AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
-                              width: _currentImageIndex == index ? 24 : 8,
-                              height: 8,
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              curve: Curves.easeOutCubic,
+                              width: isActive ? 28 : 10,
+                              height: 10,
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
                               decoration: BoxDecoration(
-                                color: _currentImageIndex == index
+                                color: isActive
                                     ? Colors.white
-                                    : Colors.white.withAlpha(150),
-                                borderRadius: BorderRadius.circular(4),
+                                    : Colors.white.withAlpha(120),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: Colors.black.withAlpha( isActive ? 40 : 20),
+                                  width: 1,
+                                ),
                                 boxShadow: [
+                                  if (isActive)
                                   BoxShadow(
-                                    color: Colors.black.withAlpha(30),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
+                                    color: Colors.black.withAlpha(40),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),

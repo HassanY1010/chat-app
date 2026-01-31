@@ -501,6 +501,11 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
         return;
       }
 
+      if (_selectedCategory == null) {
+        _showSnackBar('الرجاء اختيار القسم');
+        return;
+      }
+
       try {
         final adProvider = context.read<AdProvider>();
         
@@ -982,7 +987,7 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                               borderSide: BorderSide.none,
                             ),
                             filled: true,
-                            fillColor: Colors.grey.shade100,
+                            fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
                             contentPadding: const EdgeInsets.all(16),
                           ),
                           validator: (v) {
@@ -1029,7 +1034,7 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                                     borderSide: BorderSide.none,
                                   ),
                                   filled: true,
-                                  fillColor: Colors.grey.shade100,
+                                  fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                                 ),
                                 validator: (v) => v!.isEmpty ? 'السعر مطلوب' : null,
@@ -1049,7 +1054,7 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                                     borderSide: BorderSide.none,
                                   ),
                                   filled: true,
-                                  fillColor: Colors.grey.shade100,
+                                  fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                                 ),
                                 isExpanded: true,
@@ -1136,7 +1141,7 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                               borderSide: BorderSide.none,
                             ),
                             filled: true,
-                            fillColor: Colors.grey.shade100,
+                            fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
                             contentPadding: const EdgeInsets.all(16),
                           ),
                           validator: (v) => v!.isEmpty ? 'الموقع مطلوب' : null,
@@ -1164,7 +1169,7 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                               borderSide: BorderSide.none,
                             ),
                             filled: true,
-                            fillColor: Colors.grey.shade100,
+                            fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
                             contentPadding: const EdgeInsets.all(16),
                           ),
                           validator: (value) {
@@ -1304,7 +1309,7 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                               borderSide: BorderSide.none,
                             ),
                             filled: true,
-                            fillColor: Colors.grey.shade100,
+                            fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
                             contentPadding: const EdgeInsets.all(16),
                           ),
                           validator: (v) {
