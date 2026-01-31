@@ -1091,16 +1091,16 @@ if (confirm == true) {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final currentUserId = context.read<AuthProvider>().user?.id;
-    final adUserId = widget.ad['user']?['id'] ?? widget.ad['user_id'];
+    final adUserId = ad['user']?['id'] ?? ad['user_id'];
     final isOwner = currentUserId != null && adUserId != null &&
                     (currentUserId.toString() == adUserId.toString());
 
     
     final images = _getImageWidgets();
-    final formattedDate = widget.ad['created_at'] != null 
+    final formattedDate = ad['created_at'] != null 
         ? () {
             timeago.setLocaleMessages('ar', ArMessages());
-            return timeago.format(DateTime.parse(widget.ad['created_at']), locale: 'ar');
+            return timeago.format(DateTime.parse(ad['created_at']), locale: 'ar');
           }()
         : 'غير معروف';
 
@@ -1154,7 +1154,7 @@ if (confirm == true) {
               actions: [
                 Consumer<FavoritesProvider>(
                   builder: (context, favorites, _) {
-                    final isFav = favorites.isFavorite(int.tryParse(widget.ad['id'].toString()) ?? 0);
+                    final isFav = favorites.isFavorite(int.tryParse(ad['id'].toString()) ?? 0);
                     return Container(
                       margin: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -1180,7 +1180,7 @@ if (confirm == true) {
                             _showGuestRestrictionDialog(context, 'المفضلة');
                             return;
                           }
-                          context.read<FavoritesProvider>().toggleFavorite(widget.ad['id'].toString());
+                          context.read<FavoritesProvider>().toggleFavorite(ad['id'].toString());
                           _showSnackBar(
                             isFav ? 'تمت الإزالة من المفضلة' : 'تمت الإضافة إلى المفضلة',
                             isError: false,
@@ -1545,7 +1545,7 @@ if (confirm == true) {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            widget.ad['location'] ?? 'غير محدد',
+                                            ad['location'] ?? 'غير محدد',
                                             style: TextStyle(
                                               fontSize: 16,
                                           color: Theme.of(context).textTheme.bodySmall?.color,
@@ -1584,7 +1584,7 @@ if (confirm == true) {
                                       ],
                                     ),
                                     child: Text(
-                                      '${widget.ad['price'] ?? '0'} ${_getCurrencySymbol(widget.ad['currency'])}',
+                                      '${ad['price'] ?? '0'} ${_getCurrencySymbol(ad['currency'])}',
                                       style: const TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.w900,
@@ -1593,7 +1593,7 @@ if (confirm == true) {
                                       ),
                                     ),
                                   ),
-                                  if (widget.ad['is_negotiable'] == true || widget.ad['is_negotiable'] == 1) ...[
+                                  if (ad['is_negotiable'] == true || ad['is_negotiable'] == 1) ...[
                                     const SizedBox(height: 8),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1663,15 +1663,15 @@ if (confirm == true) {
                         _buildDetailCard(
                           icon: Icons.remove_red_eye_rounded,
                           title: 'المشاهدات',
-                          value: '${widget.ad['views'] ?? 0}',
+                          value: '${ad['views'] ?? 0}',
                           color: const Color(0xFF00B0FF),
                           isDarkMode: isDarkMode,
                         ),
                         _buildDetailCard(
                           icon: Icons.verified_rounded,
                           title: 'الحالة',
-                          value: widget.ad['status'] == 'active' ? 'نشط' : 'مغلق',
-                          color: widget.ad['status'] == 'active' ? const Color(0xFF10B981) : Colors.red,
+                          value: ad['status'] == 'active' ? 'نشط' : 'مغلق',
+                          color: ad['status'] == 'active' ? const Color(0xFF10B981) : Colors.red,
                           isDarkMode: isDarkMode,
                         ),
                       ],
@@ -1744,7 +1744,7 @@ if (confirm == true) {
                                   child: SingleChildScrollView(
                                     padding: const EdgeInsets.symmetric(vertical: 8),
                                     child: Text(
-                                      widget.ad['description'] ?? 'لا يوجد وصف',
+                                      ad['description'] ?? 'لا يوجد وصف',
                                       style: TextStyle(
                                         fontSize: 16,
                                         color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -1767,7 +1767,7 @@ if (confirm == true) {
                                   maxLines: 4,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                          if ((widget.ad['description'] ?? '').length > 200)
+                          if ((ad['description'] ?? '').length > 200)
                             Align(
                               alignment: Alignment.centerLeft,
                               child: TextButton(
@@ -1809,12 +1809,12 @@ if (confirm == true) {
                     // Seller Info
                     GestureDetector(
                       onTap: () {
-                        if (widget.ad['user'] != null) {
+                        if (ad['user'] != null) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => PublicProfileScreen(
-                                userId: widget.ad['user']['id'].toString(),
+                                userId: ad['user']['id'].toString(),
                               ),
                             ),
                           );
@@ -1898,11 +1898,11 @@ if (confirm == true) {
                                   ),
                                   child: Center(
                                   child: ClipOval(
-                                    child: widget.ad['user'] != null && 
-                                           widget.ad['user']['avatar'] != null && 
-                                           widget.ad['user']['avatar'].toString().isNotEmpty
+                                    child: ad['user'] != null && 
+                                           ad['user']['avatar'] != null && 
+                                           ad['user']['avatar'].toString().isNotEmpty
                                         ? CachedNetworkImage(
-                                            imageUrl: widget.ad['user']['avatar_url'],
+                                            imageUrl: ad['user']['avatar_url'],
                                             fit: BoxFit.cover,
                                             width: 70,
                                             height: 70,
@@ -1914,7 +1914,7 @@ if (confirm == true) {
                                             ),
                                             errorWidget: (context, url, error) => Center(
                                               child: Text(
-                                                widget.ad['user']?['name']?[0] ?? 'U',
+                                                ad['user']?['name']?[0] ?? 'U',
                                                 style: const TextStyle(
                                                   fontSize: 26,
                                                   fontWeight: FontWeight.w900,
@@ -1944,7 +1944,7 @@ if (confirm == true) {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        widget.ad['user']?['name'] ?? 'مستخدم',
+                                        ad['user']?['name'] ?? 'مستخدم',
                                         style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.w800,
@@ -1955,7 +1955,7 @@ if (confirm == true) {
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
-                                        'عضو منذ ${widget.ad['user']?['created_at']?.split('T')[0] ?? "تاريخ غير معروف"}',
+                                        'عضو منذ ${ad['user']?['created_at']?.split('T')[0] ?? "تاريخ غير معروف"}',
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: Theme.of(context).textTheme.bodySmall?.color,
@@ -1967,7 +1967,7 @@ if (confirm == true) {
                                       Row(
                                         children: [
                                           RatingBar.builder(
-                                            initialRating: double.tryParse(widget.ad['user']?['rating']?.toString() ?? '0') ?? 0.0,
+                                            initialRating: double.tryParse(ad['user']?['rating']?.toString() ?? '0') ?? 0.0,
                                             minRating: 1,
                                             direction: Axis.horizontal,
                                             allowHalfRating: true,
@@ -1982,7 +1982,7 @@ if (confirm == true) {
                                           ),
                                           const SizedBox(width: 12),
                                           Text(
-                                            '${double.tryParse(widget.ad['user']?['rating']?.toString() ?? '0')?.toStringAsFixed(1) ?? "0.0"} (${widget.ad['user']?['ratings_count'] ?? 0} تقييم)',
+                                            '${double.tryParse(ad['user']?['rating']?.toString() ?? '0')?.toStringAsFixed(1) ?? "0.0"} (${ad['user']?['ratings_count'] ?? 0} تقييم)',
                                             style: TextStyle(
                                               fontSize: 13,
                                           color: Theme.of(context).textTheme.bodySmall?.color,
@@ -2082,8 +2082,8 @@ if (confirm == true) {
   Widget _buildBottomContactBar(BuildContext context, bool isOwner, bool isDarkMode) {
     if (isOwner) return const SizedBox();
 
-    final contactPhone = widget.ad['contact_phone'];
-    final contactWhatsapp = widget.ad['contact_whatsapp'];
+    final contactPhone = ad['contact_phone'];
+    final contactWhatsapp = ad['contact_whatsapp'];
 
     final hasCall = contactPhone != null && contactPhone.toString().isNotEmpty;
     final hasWhatsapp = contactWhatsapp != null && contactWhatsapp.toString().isNotEmpty;
@@ -2266,7 +2266,7 @@ if (confirm == true) {
                         _showGuestRestrictionDialog(context, 'المراسلة');
                         return;
                       }
-                      final userId = int.tryParse((widget.ad['user']?['id'] ?? widget.ad['user_id'])?.toString() ?? '');
+                      final userId = int.tryParse((ad['user']?['id'] ?? ad['user_id'])?.toString() ?? '');
                       if (userId == null) {
                         _showSnackBar('تعذر معرفة معرف المستخدم', isError: true);
                         return;
@@ -2277,8 +2277,8 @@ if (confirm == true) {
                         MaterialPageRoute(
                           builder: (_) => ChatScreen(
                             receiverId: userId,
-                            receiverName: widget.ad['user']?['name'] ?? 'المعلن',
-                            receiverAvatar: widget.ad['user']?['avatar_url'],
+                            receiverName: ad['user']?['name'] ?? 'المعلن',
+                            receiverAvatar: ad['user']?['avatar_url'],
                           ),
                         ),
                       );
@@ -2391,12 +2391,12 @@ if (confirm == true) {
   }
 
   Widget _buildCommentsSection(bool isDarkMode) {
-    if (widget.ad['id'] == null) return const SizedBox();
+    if (ad['id'] == null) return const SizedBox();
     
     return Column(
       children: [
         FutureBuilder<List<dynamic>>(
-          future: context.read<AdProvider>().fetchComments(widget.ad['id'].toString()),
+          future: context.read<AdProvider>().fetchComments(ad['id'].toString()),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
