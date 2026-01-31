@@ -1213,12 +1213,12 @@ class _AdsListScreenState extends State<AdsListScreen> with SingleTickerProvider
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(80),
                 child: Container(
-                  color: Colors.white,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
@@ -1247,7 +1247,7 @@ class _AdsListScreenState extends State<AdsListScreen> with SingleTickerProvider
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
                           suffixIcon: Container(
                             margin: const EdgeInsets.all(8),
@@ -1290,10 +1290,10 @@ class _AdsListScreenState extends State<AdsListScreen> with SingleTickerProvider
                               ),
                             ),
                           ),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'NotoSansArabic',
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A237E),
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                           fontSize: 16,
                         ),
                         onSubmitted: (_) => _fetchAds(),

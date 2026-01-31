@@ -636,7 +636,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
@@ -682,7 +682,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
                                 child: Container(
                                   height: 150,
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[900] : Colors.grey.shade100,
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                       color: Colors.grey.shade300,
@@ -993,7 +993,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
                                     borderSide: BorderSide.none,
                                   ),
                                   filled: true,
-                                  fillColor: Colors.grey.shade100,
+                                  fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 ),
                                 items: _conditions.map((condition) {
@@ -1072,7 +1072,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
                               borderSide: BorderSide.none,
                             ),
                             filled: true,
-                            fillColor: Colors.grey.shade100,
+                            fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
                             contentPadding: const EdgeInsets.all(16),
                           ),
                         ),

@@ -64,6 +64,16 @@ class AdProvider with ChangeNotifier {
     }
   }
 
+  Future<Map<String, dynamic>> fetchAdById(String id) async {
+    try {
+      final response = await _apiService.client.get('/ads/$id');
+      return response.data['data'];
+    } catch (e) {
+      debugPrint('Error fetching ad details: $e');
+      rethrow;
+    }
+  }
+
   Future<List<dynamic>> fetchRecentAds() async {
     try {
       final response = await _apiService.client.get('/ads/recent');

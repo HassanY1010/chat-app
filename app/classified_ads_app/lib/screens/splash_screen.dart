@@ -229,17 +229,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                       width: 3,
                                     ),
                                   ),
-                                  child: const Icon(
-                                    Icons.shopping_bag_rounded,
-                                    size: 60,
-                                    color: Colors.white,
-                                    shadows: [
-                                      BoxShadow(
-                                        color: Colors.black26,
-                                        blurRadius: 8,
-                                        offset: Offset(0, 4),
-                                      ),
-                                    ],
+                                  child: Image.asset(
+                                    'assets/play_store_assets/logo_final.png',
+                                    width: 80,
+                                    height: 80,
+                                    fit: BoxFit.contain,
                                   ),
                                 ),
                               );
