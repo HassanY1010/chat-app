@@ -1316,9 +1316,12 @@ if (confirm == true) {
                       },
                     ),
                     
-                    if (images.length > 1)
+                    
+                    // Enhanced Image Navigation
+                    if (images.length > 1) ...[
+                      // Page Indicators (Dots)
                       Positioned(
-                        bottom: 40,
+                        bottom: 100,
                         left: 0,
                         right: 0,
                         child: Row(
@@ -1346,6 +1349,60 @@ if (confirm == true) {
                           }),
                         ),
                       ),
+                      
+                      // Thumbnail Strip
+                      Positioned(
+                        bottom: 20,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          height: 70,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: images.length,
+                            itemBuilder: (context, index) {
+                              final isActive = _currentImageIndex == index;
+                              return GestureDetector(
+                                onTap: () {
+                                  _pageController.animateToPage(
+                                    index,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  width: isActive ? 70 : 60,
+                                  height: isActive ? 70 : 60,
+                                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isActive 
+                                          ? Colors.white 
+                                          : Colors.white.withAlpha(100),
+                                      width: isActive ? 3 : 2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withAlpha(isActive ? 80 : 40),
+                                        blurRadius: isActive ? 12 : 6,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: images[index],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                     
                     // Like count
                     if (!isOwner && _likeCount > 0)
@@ -1546,7 +1603,7 @@ if (confirm == true) {
                       crossAxisCount: 2,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 1.6,
+                      childAspectRatio: 1.3,
                       children: [
                         _buildDetailCard(
                           icon: Icons.category_rounded,
@@ -2283,6 +2340,8 @@ if (confirm == true) {
                 color: color,
                 fontFamily: 'Cairo',
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
