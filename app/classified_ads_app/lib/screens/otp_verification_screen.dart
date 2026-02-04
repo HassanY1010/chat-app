@@ -103,24 +103,22 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           ),
         );
       }
-    } catch (e) {
-      if (!mounted) return;
-      
-      String errorMessage = 'حدث خطأ غير متوقع، يرجى المحاولة لاحقاً';
-      
-      if (e.toString().contains('DioException') || e.toString().contains('400') || e.toString().contains('401')) {
-         errorMessage = 'كود التحقق غير صحيح أو انتهت صلاحيته';
-      } else if (e.toString().contains('SocketException') || e.toString().contains('connection')) {
-         errorMessage = 'فشل الاتصال بالإنترنت، يرجى التحقق من الشبكة';
-      }
+      } catch (e) {
+        if (!mounted) return;
+        
+        String errorMessage = e.toString();
+        // Remove 'Exception: ' prefix if present
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring(11);
+        }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage, style: const TextStyle(fontFamily: 'NotoSansArabic')),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage, style: const TextStyle(fontFamily: 'NotoSansArabic')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -218,12 +216,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     } catch (e) {
       if (!mounted) return;
       
-      String errorMessage = 'فشل إرسال الرمز، يرجى المحاولة لاحقاً';
-
-      if (e.toString().contains('SocketException') || e.toString().contains('connection')) {
-         errorMessage = 'فشل الاتصال بالإنترنت، يرجى التحقق من الشبكة';
-      } else if (e.toString().contains('429')) {
-         errorMessage = 'تم تجاوز حد المحاولات، يرجى الانتظار قليلاً';
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
       }
 
       ScaffoldMessenger.of(context).showSnackBar(

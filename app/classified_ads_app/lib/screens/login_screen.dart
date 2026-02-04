@@ -108,6 +108,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         
       } catch (e) {
         if (!mounted) return;
+        
+        String errorMessage = e.toString();
+        if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring(11);
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -116,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'فشل إرسال الرمز: ${e.toString()}',
+                    errorMessage,
                     style: const TextStyle(
                       fontSize: 14,
                       fontFamily: 'NotoSansArabic',

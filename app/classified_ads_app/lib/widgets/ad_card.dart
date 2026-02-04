@@ -40,22 +40,65 @@ class AdCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: Hero(
-                  tag: 'ad-image-${ad['id']}',
-                  child: CachedNetworkImage(
-                    imageUrl: ad['main_image']?['thumbnail_url'] ?? ad['main_image']?['image_url'] ?? '',
-                    fit: BoxFit.cover,
-                    memCacheWidth: 800, // Optimized for memory
-                    placeholder: (context, url) => Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: Container(color: Colors.white),
+                child: Stack(
+                  children: [
+                    Hero(
+                      tag: 'ad-image-${ad['id']}',
+                      child: CachedNetworkImage(
+                        imageUrl: ad['main_image']?['thumbnail_url'] ?? ad['main_image']?['image_url'] ?? '',
+                        fit: BoxFit.cover,
+                        memCacheWidth: 800, // Optimized for memory
+                        placeholder: (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Container(color: Colors.white),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: const Color(0xFFF1F5F9),
+                          child: const Icon(Icons.broken_image_rounded, size: 48, color: Color(0xFF94A3B8)),
+                        ),
+                      ),
                     ),
-                    errorWidget: (context, url, error) => Container(
-                      color: const Color(0xFFF1F5F9),
-                      child: const Icon(Icons.broken_image_rounded, size: 48, color: Color(0xFF94A3B8)),
-                    ),
-                  ),
+                    if (ad['is_featured'] == true)
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.star_rounded, color: Colors.white, size: 16),
+                              SizedBox(width: 4),
+                              Text(
+                                'مميز',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Cairo',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),

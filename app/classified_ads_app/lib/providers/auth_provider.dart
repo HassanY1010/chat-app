@@ -120,6 +120,10 @@ class AuthProvider with ChangeNotifier {
         'phone': phone,
       });
     } catch (e) {
+      if (e is DioException) {
+        final message = e.response?.data['message'] ?? 'فشل إرسال الرمز';
+        throw message;
+      }
       rethrow;
     } finally {
       _isLoading = false;
@@ -151,6 +155,10 @@ class AuthProvider with ChangeNotifier {
       }
       return false;
     } catch (e) {
+      if (e is DioException) {
+        final message = e.response?.data['message'] ?? 'كود التحقق غير صحيح';
+        throw message;
+      }
       rethrow;
     } finally {
       _isLoading = false;
