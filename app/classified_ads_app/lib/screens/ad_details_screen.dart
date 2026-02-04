@@ -1007,16 +1007,30 @@ if (confirm == true) {
   }
 
   List<Widget> _getImageWidgets() {
-    final images = [];
-    if (ad['main_image'] != null) {
-      images.add(ad['main_image']);
+    final List<dynamic> imageList = [];
+    final Set<String> seenUrls = {};
+
+    void addImage(dynamic img) {
+      if (img != null && img is Map) {
+        final url = img['image_url'] ?? '';
+        if (url.isNotEmpty && !seenUrls.contains(url)) {
+          imageList.add(img);
+          seenUrls.add(url);
+        }
+      }
     }
-    
+
+    // Add images from the list first (maintains backend sort order)
     if (ad['images'] != null && ad['images'] is List) {
-      images.addAll(ad['images']);
+      for (var img in ad['images']) {
+        addImage(img);
+      }
     }
-    
-    if (images.isEmpty) {
+
+    // Add main_image as a safeguard (it won't be added if already in images list)
+    addImage(ad['main_image']);
+
+    if (imageList.isEmpty) {
       return [
         Container(
           decoration: BoxDecoration(
@@ -1040,7 +1054,7 @@ if (confirm == true) {
       ];
     }
     
-    return images.map((image) {
+    return imageList.map((image) {
       final imageUrl = image['image_url'] ?? '';
           
       return CachedNetworkImage(
@@ -1523,7 +1537,7 @@ if (confirm == true) {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.ad['title'] ?? 'بدون عنوان',
+                                      ad['title'] ?? 'بدون عنوان',
                                       style: TextStyle(
                                         fontSize: 28,
                                         fontWeight: FontWeight.w900,

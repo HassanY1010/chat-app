@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/ad_provider.dart';
+import '../widgets/featured_ad_info_dialog.dart';
 
 class CreateAdScreen extends StatefulWidget {
   const CreateAdScreen({super.key});
@@ -1162,7 +1163,7 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                             fontFamily: 'Cairo', // استخدام Cairo للأرقام
                           ),
                           decoration: InputDecoration(
-                            hintText: 'مثال: 771234567 أو 512345678',
+                            hintText: '',
                             hintStyle: const TextStyle(fontFamily: 'Cairo'), // استخدام Cairo للأرقام
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -1317,6 +1318,165 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                             if (v.length < 50) return 'الوصف قصير جداً';
                             return null;
                           },
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Featured Ad Info Section
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFFF3E5F5),
+                              Color(0xFFE1BEE7),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.purple.shade200,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.purple.withAlpha(51),
+                              blurRadius: 15,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.purple.shade600,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.star_rounded,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Expanded(
+                                  child: Text(
+                                    'اجعل إعلانك مميزاً',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                      fontFamily: 'NotoSansArabic',
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: const [
+                                      Text(
+                                        'السعر:',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                          fontFamily: 'NotoSansArabic',
+                                        ),
+                                      ),
+                                      Text(
+                                        '10,000 ريال يمني',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.purple,
+                                          fontFamily: 'NotoSansArabic',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Divider(height: 24),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: const [
+                                      Text(
+                                        'المدة:',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                          fontFamily: 'NotoSansArabic',
+                                        ),
+                                      ),
+                                      Text(
+                                        '7 أيام',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                          fontFamily: 'NotoSansArabic',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              '✓ ظهور في أعلى نتائج البحث\n✓ علامة مميزة تجذب المشترين\n✓ زيادة فرص البيع بشكل كبير',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                                height: 1.8,
+                                fontFamily: 'NotoSansArabic',
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => const FeaturedAdInfoDialog(),
+                                  );
+                                },
+                                icon: const Icon(Icons.info_outline, size: 20),
+                                label: const Text(
+                                  'معرفة المزيد',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'NotoSansArabic',
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.purple.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       
