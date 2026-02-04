@@ -83,6 +83,7 @@ class FeaturedAdInfoDialog extends StatelessWidget {
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        fontFamily: 'Cairo',
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -92,6 +93,7 @@ class FeaturedAdInfoDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white70,
+                        fontFamily: 'Cairo',
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -119,46 +121,34 @@ class FeaturedAdInfoDialog extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'السعر',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                '10,000 ريال يمني',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.purple,
-                                ),
-                              ),
-                            ],
+                          const Text(
+                            '10,000 ريال يمني',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.purple,
+                              fontFamily: 'Cairo',
+                            ),
                           ),
+                          const SizedBox(height: 12),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
+                              horizontal: 20,
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.purple.shade50,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Text(
-                              '7 أيام',
+                              'لمدة 7 أيام كاملة',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.purple,
+                                fontFamily: 'Cairo',
                               ),
                             ),
                           ),
@@ -175,6 +165,7 @@ class FeaturedAdInfoDialog extends StatelessWidget {
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
+                        fontFamily: 'Cairo',
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -213,6 +204,7 @@ class FeaturedAdInfoDialog extends StatelessWidget {
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black87,
+                                  fontFamily: 'Cairo',
                                 ),
                               ),
                             ],
@@ -235,6 +227,7 @@ class FeaturedAdInfoDialog extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
+                        fontFamily: 'Cairo',
                       ),
                     ),
                     const SizedBox(height: 12),
