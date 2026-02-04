@@ -41,21 +41,24 @@ class AdCard extends StatelessWidget {
               child: AspectRatio(
                 aspectRatio: 16 / 9,
                 child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Hero(
-                      tag: 'ad-image-${ad['id']}',
-                      child: CachedNetworkImage(
-                        imageUrl: ad['main_image']?['thumbnail_url'] ?? ad['main_image']?['image_url'] ?? '',
-                        fit: BoxFit.cover,
-                        memCacheWidth: 800, // Optimized for memory
-                        placeholder: (context, url) => Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: Container(color: Colors.white),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: const Color(0xFFF1F5F9),
-                          child: const Icon(Icons.broken_image_rounded, size: 48, color: Color(0xFF94A3B8)),
+                    Positioned.fill(
+                      child: Hero(
+                        tag: 'ad-image-${ad['id']}',
+                        child: CachedNetworkImage(
+                          imageUrl: ad['main_image']?['thumbnail_url'] ?? ad['main_image']?['image_url'] ?? '',
+                          fit: BoxFit.cover,
+                          memCacheWidth: 800, // Optimized for memory
+                          placeholder: (context, url) => Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Container(color: Colors.white),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: const Color(0xFFF1F5F9),
+                            child: const Icon(Icons.broken_image_rounded, size: 48, color: Color(0xFF94A3B8)),
+                          ),
                         ),
                       ),
                     ),
