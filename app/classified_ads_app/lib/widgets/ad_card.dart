@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../screens/ad_details_screen.dart';
 import '../utils/app_icons.dart';
@@ -50,10 +49,10 @@ class AdCard extends StatelessWidget {
                           imageUrl: ad['main_image']?['thumbnail_url'] ?? ad['main_image']?['image_url'] ?? '',
                           fit: BoxFit.cover,
                           memCacheWidth: 800, // Optimized for memory
-                          placeholder: (context, url) => Shimmer.fromColors(
-                            baseColor: Colors.grey[300]!,
-                            highlightColor: Colors.grey[100]!,
-                            child: Container(color: Colors.white),
+                          maxHeightDiskCache: 600,
+                          fadeInDuration: const Duration(milliseconds: 200),
+                          placeholder: (context, url) => Container(
+                            color: const Color(0xFFF1F5F9),
                           ),
                           errorWidget: (context, url, error) => Container(
                             color: const Color(0xFFF1F5F9),

@@ -4,6 +4,7 @@ import 'package:shimmer/shimmer.dart';
 import '../providers/ad_provider.dart';
 import '../providers/notification_provider.dart';
 import '../widgets/ad_card.dart';
+import '../widgets/featured_ads_slider.dart';
 import 'ad_details_screen.dart';
 import 'conversations_screen.dart';
 import '../providers/auth_provider.dart';
@@ -50,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         final provider = context.read<AdProvider>();
         provider.setCategory(id);
         provider.fetchAds(categoryId: id);
+        provider.fetchFeaturedAds();
       }),
       const CreateAdScreen(),
       const ConversationsScreen(),
@@ -595,7 +597,7 @@ class _AdsListScreenState extends State<AdsListScreen> with SingleTickerProvider
     super.initState();
     _scrollController = ScrollController();
     _searchAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
     
@@ -613,6 +615,9 @@ class _AdsListScreenState extends State<AdsListScreen> with SingleTickerProvider
     });
     
     _scrollController.addListener(() {
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+        context.read<AdProvider>().fetchMoreAds();
+      }
       if (_scrollController.offset > 100 && _showSearchBar) {
         _toggleSearchBar(false);
       }
@@ -640,12 +645,17 @@ class _AdsListScreenState extends State<AdsListScreen> with SingleTickerProvider
   }
 
   Future<void> _fetchAds() async {
-    await context.read<AdProvider>().fetchAds(
+    final provider = context.read<AdProvider>();
+    // Fetch featured ads in parallel
+    provider.fetchFeaturedAds();
+    
+    await provider.fetchAds(
       search: _searchController.text.isEmpty ? null : _searchController.text,
       categoryId: _selectedCategory,
       minPrice: _minPriceController.text.isEmpty ? null : _minPriceController.text,
       maxPrice: _maxPriceController.text.isEmpty ? null : _maxPriceController.text,
       currency: _selectedCurrency,
+      excludeFeatured: true, // Don't show featured ads in the main list
     );
   }
 
@@ -1325,10 +1335,17 @@ class _AdsListScreenState extends State<AdsListScreen> with SingleTickerProvider
                 color: const Color(0xFF4A6DFF),
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-                  itemCount: provider.ads.length + 1, // +1 for the header
+                  itemCount: provider.ads.length + 1 + (provider.hasMore ? 1 : 0), // +1 for header, +1 for loader
                   itemBuilder: (context, index) {
                     if (index == 0) {
                       return _buildHeaderSection(provider);
+                    }
+                    
+                    if (index == provider.ads.length + 1) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 32),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
                     }
                     
                     final ad = provider.ads[index - 1];
@@ -1350,7 +1367,8 @@ class _AdsListScreenState extends State<AdsListScreen> with SingleTickerProvider
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
+        const FeaturedAdsSlider(),
+        const SizedBox(height: 16),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Row(

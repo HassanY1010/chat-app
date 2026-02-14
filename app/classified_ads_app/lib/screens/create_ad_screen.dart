@@ -13,7 +13,7 @@ class CreateAdScreen extends StatefulWidget {
   State<CreateAdScreen> createState() => _CreateAdScreenState();
 }
 
-class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProviderStateMixin {
+class _CreateAdScreenState extends State<CreateAdScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
@@ -40,11 +40,6 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
     {'code': 'USD', 'name': 'دولار', 'symbol': '\$'},
   ];
   
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _scaleAnimation;
-  
   // Hardcoded categories removed.
   List<dynamic> _apiCategories = [];
   Map<String, dynamic>? _selectedCategoryObject;
@@ -60,35 +55,6 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
   void initState() {
     super.initState();
     
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeInOut),
-      ),
-    );
-    
-    _slideAnimation = Tween<double>(begin: 0.1, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
-      ),
-    );
-    
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutBack,
-      ),
-    );
-    
-    _animationController.forward();
-    
-    // Set default category
     // Fetch categories
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadCategories();
@@ -102,7 +68,6 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
 
   @override
   void dispose() {
-    _animationController.dispose();
     _titleController.dispose();
     _descController.dispose();
     _priceController.dispose();
@@ -208,11 +173,17 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
 
   Future<void> _pickImages() async {
     final List<XFile> pickedFiles = await _picker.pickMultiImage(
-      maxWidth: 1200,
-      maxHeight: 1200,
-      imageQuality: 85,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 75,
     );
     if (pickedFiles.isNotEmpty) {
+      if (_images.length + pickedFiles.length > 10) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('الحد الأقصى 10 صور فقط')),
+        );
+        return;
+      }
       setState(() {
         _images.addAll(pickedFiles);
       });
@@ -222,11 +193,17 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
   Future<void> _takePhoto() async {
     final XFile? photo = await _picker.pickImage(
       source: ImageSource.camera,
-      maxWidth: 1200,
-      maxHeight: 1200,
-      imageQuality: 85,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 75,
     );
     if (photo != null) {
+      if (_images.length >= 10) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('الحد الأقصى 10 صور فقط')),
+        );
+        return;
+      }
       setState(() {
         _images.add(photo);
       });
@@ -512,9 +489,13 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
         
         setState(() => _isLoading = true);
         
-        // 🚀 Speed Optimization: Parallel Uploads
-        final List<Future<String?>> uploadFutures = _images.map((image) => adProvider.uploadImage(image)).toList();
-        final List<String?> results = await Future.wait(uploadFutures);
+        // 🚀 Speed Optimization: Parallel Uploads with error handling
+        final List<String?> results = await Future.wait(
+          _images.map((image) => adProvider.uploadImage(image).catchError((e) {
+            debugPrint('Error uploading image: $e');
+            return null; // Return null on error to keep other uploads moving
+          }))
+        );
         
         _uploadedImageUrls.clear();
         for (var path in results) {
@@ -706,21 +687,7 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _slideAnimation.value * 100),
-          child: Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Opacity(
-              opacity: _fadeAnimation.value,
-              child: child,
-            ),
-          ),
-        );
-      },
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         resizeToAvoidBottomInset: true,
         body: SingleChildScrollView(
@@ -1066,9 +1033,12 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                                       fit: BoxFit.scaleDown,
                                       child: Text(
                                         currency['name']!,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontFamily: 'NotoSansArabic',
                                           fontSize: 14,
+                                          color: Theme.of(context).brightness == Brightness.dark 
+                                              ? Colors.white 
+                                              : Colors.black,
                                         ),
                                       ),
                                     ),
@@ -1079,7 +1049,10 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                                     _selectedCurrency = value!;
                                   });
                                 },
-                                style: const TextStyle(fontFamily: 'NotoSansArabic'),
+                                style: TextStyle(
+                                  fontFamily: 'NotoSansArabic',
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                                ),
                               ),
                             ),
                           ),
@@ -1108,7 +1081,12 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                               value: condition['value'],
                               child: Text(
                                 condition['label']!,
-                                style: const TextStyle(fontFamily: 'NotoSansArabic'), // استخدام الخط المحلي
+                                style: TextStyle(
+                                  fontFamily: 'NotoSansArabic',
+                                  color: Theme.of(context).brightness == Brightness.dark 
+                                      ? Colors.white 
+                                      : Colors.black,
+                                ), // استخدام الخط المحلي
                               ),
                             );
                           }).toList(),
@@ -1117,7 +1095,10 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
                               _selectedCondition = value;
                             });
                           },
-                          style: const TextStyle(fontFamily: 'NotoSansArabic'), // استخدام الخط المحلي
+                          style: TextStyle(
+                            fontFamily: 'NotoSansArabic',
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                          ), // استخدام الخط المحلي
                           validator: (v) => v == null ? 'الحالة مطلوبة' : null,
                         ),
                       ),
@@ -1570,7 +1551,6 @@ class _CreateAdScreenState extends State<CreateAdScreen> with SingleTickerProvid
             ],
           ),
         ),
-      ),
     );
   }
 

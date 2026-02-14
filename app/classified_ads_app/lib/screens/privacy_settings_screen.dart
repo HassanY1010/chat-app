@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 class PrivacySettingsScreen extends StatefulWidget {
   const PrivacySettingsScreen({super.key});
@@ -130,6 +132,20 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                           value: user.showPhoneNumber,
                           onChanged: (value) => _updateShowPhoneNumber(value),
                         ),
+                        const SizedBox(height: 32),
+                        const Divider(),
+                        const SizedBox(height: 16),
+                        _buildSettingsNavigationItem(
+                          icon: Icons.description_outlined,
+                          title: 'سياسة الخصوصية الكاملة',
+                          subtitle: 'قراءة تفاصيل حماية البيانات على موقعنا',
+                          onTap: () async {
+                            final url = Uri.parse('https://hassany1010.github.io/laqta-privacy/');
+                            if (await canLaunchUrl(url)) {
+                              await launchUrl(url, mode: LaunchMode.externalApplication);
+                            }
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -138,6 +154,60 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
             ),
     );
   }
+
+  Widget _buildSettingsNavigationItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4A6DFF).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: const Color(0xFF4A6DFF), size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A237E),
+                      fontFamily: 'Cairo',
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF64748B),
+                      fontFamily: 'NotoSansArabic',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.open_in_new_rounded, color: Color(0xFF94A3B8), size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildPrivacySwitch({
     required IconData icon,

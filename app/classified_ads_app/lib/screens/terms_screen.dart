@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 enum TermsType {
   privacy,
@@ -67,7 +68,20 @@ class TermsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(_title),
         centerTitle: true,
+        actions: type == TermsType.privacy ? [
+          IconButton(
+            icon: const Icon(Icons.language),
+            tooltip: 'عرض النسخة المحدثة أونلاين',
+            onPressed: () async {
+              final url = Uri.parse('https://hassany1010.github.io/laqta-privacy/');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              }
+            },
+          )
+        ] : null,
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Text(

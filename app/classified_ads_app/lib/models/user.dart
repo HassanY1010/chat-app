@@ -75,8 +75,15 @@ class User {
     }
 
     if (fixedUrl.contains('localhost') && AppConstants.baseUrl.contains('192.168.0.198')) {
-      return fixedUrl.replaceFirst('localhost', '192.168.0.198');
+      fixedUrl = fixedUrl.replaceFirst('localhost', '192.168.0.198');
     }
+
+    // Cache busting for avatars
+    if (fixedUrl.contains('avatar') || fixedUrl.contains('profile')) {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      fixedUrl = fixedUrl.contains('?') ? '$fixedUrl&t=$timestamp' : '$fixedUrl?t=$timestamp';
+    }
+
     return fixedUrl;
   }
 

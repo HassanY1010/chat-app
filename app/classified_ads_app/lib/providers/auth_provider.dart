@@ -226,8 +226,9 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      await _apiService.client.delete('/profile/delete');
+      await _apiService.client.delete('/profile');
       await logout();
+
     } catch (e) {
       rethrow;
     } finally {

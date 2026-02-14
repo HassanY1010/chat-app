@@ -9,12 +9,23 @@ class AdProvider with ChangeNotifier {
   List<dynamic> _ads = [];
   List<dynamic>? _myAds;
   bool _isLoading = false;
+  int _currentPage = 1;
+  bool _hasMore = true;
+  String? _lastSearch;
+  String? _lastCategoryId;
 
   List<dynamic> get ads => _ads;
   List<dynamic>? get myAds => _myAds;
   List<dynamic> _categories = [];
   List<dynamic> get categories => _categories;
   bool get isLoading => _isLoading;
+  bool get hasMore => _hasMore;
+
+  // Featured Ads State
+  List<dynamic> _featuredAds = [];
+  List<dynamic> get featuredAds => _featuredAds;
+  bool _isFeaturedLoading = false;
+  bool get isFeaturedLoading => _isFeaturedLoading;
 
   Future<void> fetchCategories() async {
     try {
@@ -41,27 +52,65 @@ class AdProvider with ChangeNotifier {
     String? minPrice,
     String? maxPrice,
     String? currency,
+    bool excludeFeatured = false,
+    bool refresh = true,
   }) async {
+    if (refresh) {
+      _currentPage = 1;
+      _hasMore = true;
+      _ads = [];
+    }
+
+    if (!_hasMore) return;
+
     _isLoading = true;
     notifyListeners();
 
     try {
-      final queryParams = <String, dynamic>{};
+      final queryParams = <String, dynamic>{
+        'page': _currentPage,
+      };
       if (categoryId != null) queryParams['category_id'] = categoryId;
       if (search != null) queryParams['search'] = search;
       if (location != null) queryParams['location'] = location;
       if (minPrice != null) queryParams['min_price'] = minPrice;
       if (maxPrice != null) queryParams['max_price'] = maxPrice;
       if (currency != null) queryParams['currency'] = currency;
+      if (excludeFeatured) queryParams['exclude_featured'] = 1;
+
+      _lastSearch = search;
+      _lastCategoryId = categoryId;
 
       final response = await _apiService.client.get('/ads', queryParameters: queryParams);
-      _ads = response.data['data']; 
+      
+      final List<dynamic> newAds = response.data['data'];
+      
+      if (newAds.length < 20) {
+        _hasMore = false;
+      }
+
+      if (refresh) {
+        _ads = newAds;
+      } else {
+        _ads.addAll(newAds);
+      }
+      
+      _currentPage++;
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint('Error fetching ads: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> fetchMoreAds() async {
+    if (_isLoading || !_hasMore) return;
+    await fetchAds(
+      categoryId: _lastCategoryId,
+      search: _lastSearch,
+      refresh: false,
+    );
   }
 
   Future<Map<String, dynamic>> fetchAdById(String id) async {
@@ -81,6 +130,75 @@ class AdProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('Error fetching recent ads: $e');
       return [];
+    }
+  }
+
+  Future<void> fetchFeaturedAds() async {
+    _isFeaturedLoading = true;
+    notifyListeners();
+
+    try {
+      debugPrint('🌟 Fetching Featured Ads...');
+      // Real API Call
+      final response = await _apiService.client.get('/ads/featured');
+      debugPrint('✅ Featured Ads Response: ${response.data}');
+      
+      _featuredAds = response.data['data']; 
+      
+      // Fallback for demo if API returns empty
+      if (_featuredAds.isEmpty) {
+        debugPrint('⚠️ No featured ads found from API. Using Mock Data for Demo.');
+        _featuredAds = [
+
+          {
+            'id': 102,
+            'title': 'فيلا للبيع في حي الملقا',
+            'price': '4,500,000',
+            'currency': 'ر.س',
+            'location': 'الرياض',
+            'created_at': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+            'main_image': {
+              'image_url': 'https://images.unsplash.com/photo-1600596542815-22b8c153bd30?auto=format&fit=crop&w=800&q=80',
+            },
+            'is_featured': true,
+            'featured_end_date': DateTime.now().add(const Duration(days: 6)).toIso8601String(),
+          },
+           {
+            'id': 103,
+            'title': 'آيفون 15 برو ماكس جديد',
+            'price': '4,200',
+            'currency': 'ر.س',
+            'location': 'جدة',
+            'created_at': DateTime.now().subtract(const Duration(minutes: 30)).toIso8601String(),
+            'main_image': {
+              'image_url': 'https://images.unsplash.com/photo-1695048180490-30ed063c8452?auto=format&fit=crop&w=800&q=80',
+            },
+            'is_featured': true,
+            'featured_end_date': DateTime.now().add(const Duration(days: 7)).toIso8601String(),
+          },
+        ];
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching featured ads: $e');
+      // On error, also use mock data so UI doesn't look broken during dev
+       _featuredAds = [
+          {
+            'id': 101,
+            'title': 'سيارة مرسيدس 2024 نظيفة جداً',
+            'price': '150,000',
+            'currency': 'ر.س',
+            'location': 'الرياض',
+            'created_at': DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
+            'main_image': {
+              'image_url': 'https://images.unsplash.com/photo-1605559424843-9e4c2287f38d?auto=format&fit=crop&w=800&q=80',
+            },
+            'is_featured': true,
+            'featured_end_date': DateTime.now().add(const Duration(days: 5)).toIso8601String(),
+          },
+       ];
+    } finally {
+      _isFeaturedLoading = false;
+      notifyListeners();
     }
   }
 
